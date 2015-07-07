@@ -52,7 +52,7 @@ def sign_in():
     from GradeServer.utils.memberCourseProblemParameter import MemberCourseProblemParameter
     
     from GradeServer.utils.utilArticleQuery import select_notices
-    from GradeServer.utils.utilQuery import select_match_member
+    from GradeServer.utils.utilUserQuery import select_match_member
     from GradeServer.utils.utilRankQuery import select_top_coder
     
     from GradeServer.resource.htmlResources import HTMLResources
