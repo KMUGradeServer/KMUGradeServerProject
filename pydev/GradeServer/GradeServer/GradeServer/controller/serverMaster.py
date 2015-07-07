@@ -26,6 +26,7 @@ from GradeServer.utils.checkInvalidAccess import check_invalid_access
 
 from GradeServer.utils.collegeParameter import CollegeParameter
 from GradeServer.utils.departmentParameter import DepartmentParameter
+from GradeServer.utils.utilUserQuery import join_member_informations
 from GradeServer.utils.utilProblemQuery import select_problems
 from GradeServer.utils.utilCourseQuery import select_registered_courses,\
                                              select_language_of_course,\
@@ -1061,10 +1062,10 @@ def server_manage_problem(activeTabId, pageNum):
                                                     count))
 
 
-@GradeServer.route('/master/manage_users', methods=['GET', 'POST'])
+@GradeServer.route('/master/manage_users-<activeTabId>/page<int:pageNum>', methods=['GET', 'POST'])
 @check_invalid_access
 @login_required
-def server_manage_user():
+def server_manage_user(activeTabId, pageNum):
     error=None
 
     try:
@@ -1117,7 +1118,9 @@ def server_manage_user():
             if error: break
             
         if not error:
-            return redirect(url_for('.server_manage_user'))
+            return redirect(url_for('.server_manage_user',
+                                    activeTabId = activeTabId,
+                                    pageNum = pageNum))
 
     return render_template('/server_manage_user.html', 
                            error=error,
@@ -1140,7 +1143,7 @@ def server_add_user():
         allColleges = []
         
     try:
-        allDepartments = select_departments().all()
+        allDepartments = join_departments_of_colleges().all()
     except exc.SQLAlchemyError:
         allDepartments = []
         

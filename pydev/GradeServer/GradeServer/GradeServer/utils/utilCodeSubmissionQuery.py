@@ -12,7 +12,8 @@ from GradeServer.model.registeredProblems import RegisteredProblems
 from GradeServer.utils.memberCourseProblemParameter import MemberCourseProblemParameter
 from GradeServer.utils.utilSubmissionQuery import select_last_submissions
 from GradeServer.utils.utilProblemQuery import select_problem_informations
-from GradeServer.utils.utilQuery import select_match_member, select_course_information
+from GradeServer.utils.utilUserQuery import select_match_member
+from GradeServer.utils.utilCourseQuery import select_registered_course
         
 from GradeServer.utils.utilMessages import unknown_error, get_message
 from GradeServer.resource.enumResources import ENUMResources
@@ -36,8 +37,8 @@ def select_languages(courseId):
                
 def get_course_name(courseId):
     try:
-        courseName = select_course_information(courseId).first().\
-                                                         courseName
+        courseName = select_registered_course(courseId).first().\
+                                                        courseName
         return courseName
     except Exception as e:
         return unknown_error(get_message('dbError'))
@@ -139,7 +140,7 @@ def insert_to_submissions(courseId, memberId, problemId, submissionCount, soluti
                               submissionCount = submissionCount,
                               solutionCheckCount = solutionCheckCount,
                               viewCount = viewCount,
-                              status = ENUMResources.const.JUDGING,
+                              status = ENUMResources().const.JUDGING,
                               codeSubmissionDate = datetime.now(),
                               sumOfSubmittedFileSize = sumOfSubmittedFileSize,
                               usedLanguageIndex = usedLanguageIndex)
