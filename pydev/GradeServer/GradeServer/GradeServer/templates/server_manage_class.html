@@ -104,7 +104,7 @@
 								onclick="selectAllCheckboxes('registeredCourses');">
 			<form method="post">
 			<tbody>
-				{%- for course, member in courses %}
+				{%- for course in courses %}
 				<tr>
 					<td>{{ course.courseId }}
 					<td>{{ course.courseName }}
@@ -141,6 +141,32 @@
 				{% endfor -%}
 			</form>
 		</table>
+		
+		<!-- Paging -->
+		<div class="pagination pagination-centered">
+			<ul>
+				{%- if pages['startPage'] > 1 %}
+				<li><a href="{{ url_for ('GradeServer.manage_class', pageNum = pages['pageNum'] -1) }}"><</a></li>
+				{% endif -%}
+				
+				{%- for i in range (pages['startPage'], pages['endPage'] +1) %}
+				<li>
+					{% if pages['pageNum'] == i %}
+					<a style ='background-color:gray'>
+					{% else %}
+					<a href="{{ url_for ('GradeServer.manage_class', pageNum = i) }}">
+					{% endif %}
+					{{ i }}
+					</a>
+				</li>
+				{% endfor -%}
+				
+				{%- if pages['endPage'] < pages['allPage'] %}
+				<li><a href="{{ url_for ('GradeServer.manage_class', pageNum =pages['pageNum'] +1) }}">></a></li>
+				{% endif -%}
+			</ul>
+		</div>
+		<!-- End Paging -->
 	</div>
 </div>
 {% endblock -%}

@@ -20,9 +20,15 @@ class Departments(Base) :
     
     __tablename__ ='Departments'
     
-    departmentIndex =Column (INTEGER (unsigned =True), primary_key =True, autoincrement =True, nullable =False)
-    departmentCode =Column (VARCHAR (128), nullable =True)
-    departmentName =Column (VARCHAR (1024), nullable =False)
+    departmentIndex =Column (INTEGER (unsigned = True), 
+                             primary_key = True, autoincrement = True,
+                             nullable = False)
+    departmentCode =Column (VARCHAR (128), 
+                            nullable = True,
+                            unique = True)
+    departmentName =Column (VARCHAR (255), 
+                            nullable = False,
+                            unique = True)
     isAbolished =Column (ENUM (ENUMResources().const.TRUE,
                                ENUMResources().const.FALSE),
                          default = ENUMResources().const.FALSE,

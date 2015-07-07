@@ -180,7 +180,7 @@
 					<tbody>
 						{%- for college in allColleges %}
 						<tr>
-							<td>{{ loop.index }}
+							<td>{{ (collegePages['count'] - loop.index0) - (collegePages['pageNum'] - 1) * collegePages['LIST'] }}
 							<td class='hidden-phone'>{{ college.collegeCode }}
 							<td>{{ college.collegeName }}
 							<td>
@@ -189,6 +189,40 @@
 									     type="checkbox">
 						{% endfor -%}
 				</table>
+				
+				<!-- Paging -->
+				<div class="pagination pagination-centered">
+					<ul>
+						{%- if collegePages['startPage'] > 1 %}
+						<li><a href="{{ url_for ('GradeServer.server_manage_collegedepartment',
+							collegePageNum = collegePages['pageNum'] -1,
+							departmentPageNum = departmentPages['pageNum']) }}"><</a>
+						</li>
+						{% endif -%}
+						
+						{%- for i in range (collegePages['startPage'], collegePages['endPage'] +1) %}
+						<li>
+							{% if collegePages['pageNum'] == i %}
+							<a style ='background-color:gray'>
+							{% else %}
+							<a href="{{ url_for ('GradeServer.server_manage_collegedepartment',
+								collegePageNum = i,
+								departmentPageNum = departmentPages['pageNum']) }}">
+							{% endif %}
+							{{ i }}
+							</a>
+						</li>
+						{% endfor -%}
+						
+						{%- if collegePages['endPage'] < collegePages['allPage'] %}
+						<li><a href="{{ url_for ('GradeServer.server_manage_collegedepartment', 
+							collegePageNum =collegePages['pageNum'] +1,
+							departmentPageNum = departmentPages['pageNum']) }}">></a>
+						</li>
+						{% endif -%}
+					</ul>
+				</div>
+				<!-- End Paging -->
 			</div>
 			
 			<!-- College deletion -->
@@ -262,10 +296,10 @@
 								<input class="checkAll" type="checkbox" style="margin:0px"
 										onclick="selectAllCheckboxes('departments');">
 					<tbody>
-						{%- for relation, college, department in allDepartments %}
+						{%- for department in allDepartments %}
 						<tr>
-							<td>{{ loop.index }}
-							<td>{{ college.collegeName }}
+							<td>{{ (departmentPages['count'] - loop.index0) - (departmentPages['pageNum'] - 1) * departmentPages['LIST'] }}
+							<td>{{ department.collegeName }}
 							<td class='hidden-phone'>{{ department.departmentCode }}
 							<td>{{ department.departmentName }}
 							<td>
@@ -274,6 +308,40 @@
 									  	type="checkbox">
 						{% endfor -%}
 				</table>
+				
+				<!-- Paging -->
+				<div class="pagination pagination-centered">
+					<ul>
+						{%- if departmentPages['startPage'] > 1 %}
+						<li><a href="{{ url_for ('GradeServer.server_manage_collegedepartment',
+							collegePageNum = collegePages['pageNum'],
+							departmentPageNum = departmentPages['pageNum'] -1) }}"><</a>
+						</li>
+						{% endif -%}
+						
+						{%- for i in range (departmentPages['startPage'], departmentPages['endPage'] +1) %}
+						<li>
+							{% if departmentPages['pageNum'] == i %}
+							<a style ='background-color:gray'>
+							{% else %}
+							<a href="{{ url_for ('GradeServer.server_manage_collegedepartment',
+								collegePageNum = collegePages['pageNum'],
+								departmentPageNum = i) }}">
+							{% endif %}
+							{{ i }}
+							</a>
+						</li>
+						{% endfor -%}
+						
+						{%- if departmentPages['endPage'] < departmentPages['allPage'] %}
+						<li><a href="{{ url_for ('GradeServer.server_manage_collegedepartment', 
+							collegePageNum =collegePages['pageNum'],
+							departmentPageNum = departmentPages['pageNum'] +1) }}">></a>
+						</li>
+						{% endif -%}
+					</ul>
+				</div>
+				<!-- End Paging -->
 			</div>
 		</div>
 	</div>

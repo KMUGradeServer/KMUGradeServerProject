@@ -20,10 +20,17 @@ class Colleges (Base) :
     
     __tablename__ ='Colleges'
     
-    collegeIndex =Column (INTEGER (unsigned =True), primary_key =True, autoincrement =True, nullable =False)
-    collegeCode =Column (VARCHAR (128), nullable =True)
-    collegeName =Column (VARCHAR (1024), nullable =False)
+    collegeIndex =Column (INTEGER (unsigned = True), 
+                          primary_key = True, 
+                          autoincrement = True, 
+                          nullable = False)
+    collegeCode =Column (VARCHAR (128), 
+                         nullable = True, 
+                         unique = True)
+    collegeName =Column (VARCHAR (255), 
+                         nullable = False, 
+                         unique = True)
     isAbolished =Column (ENUM (ENUMResources().const.TRUE,
                                ENUMResources().const.FALSE),
                          default = ENUMResources().const.FALSE,
-                         nullable =False)
+                         nullable = False)
