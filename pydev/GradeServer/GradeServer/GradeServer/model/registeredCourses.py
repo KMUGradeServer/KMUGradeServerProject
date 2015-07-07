@@ -24,8 +24,8 @@ class RegisteredCourses (Base) :
     
     # YYYY학기(1)과목(3)분반(2)
     courseId = Column(VARCHAR(10), 
-                       primary_key = True, 
-                       nullable = False)
+                      primary_key = True, 
+                      nullable = False)
     courseName = Column(VARCHAR(1024), 
                         nullable = False)
     courseDescription = Column(TEXT, 
@@ -34,7 +34,7 @@ class RegisteredCourses (Base) :
                                nullable = True)
     endDateOfCourse = Column(DATETIME, 
                              nullable = True)
-    courseAdministratorId = Column(VARCHAR(20), 
+    courseAdministratorId = Column(VARCHAR(20),
                                    ForeignKey(Members.memberId, 
                                               onupdate = "CASCADE", 
                                               ondelete = "CASCADE"), 
@@ -42,3 +42,6 @@ class RegisteredCourses (Base) :
     isTeam = Column(ENUM(ENUMResources().const.TRUE,
                          ENUMResources().const.FALSE),
                     default = ENUMResources().const.FALSE)
+    isDeleted = Column(ENUM(ENUMResources().const.TRUE,
+                            ENUMResources().const.FALSE),
+                       default = ENUMResources().const.FALSE)
