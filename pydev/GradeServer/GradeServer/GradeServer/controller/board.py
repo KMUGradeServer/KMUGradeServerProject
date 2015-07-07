@@ -24,7 +24,8 @@ from GradeServer.utils.utilArticleQuery import join_courses_names, select_articl
                                                update_article_like_counting, update_article_is_like, update_replies_on_board_like_counting,\
                                                update_replies_on_board_is_like, update_replies_on_board_delete, update_replies_on_board_modify, update_article_delete,\
                                                insert_artitles_on_board, insert_likes_on_board, insert_replies_on_board, insert_likes_on_reply_of_board
-from GradeServer.utils.utilQuery import select_accept_courses, select_count, select_current_courses
+from GradeServer.utils.utilQuery import select_count
+from GradeServer.utils.utilCourseQuery import select_accept_courses, select_current_courses
 
 from GradeServer.utils.filterFindParameter import FilterFindParameter
 from GradeServer.utils.memberCourseProblemParameter import MemberCourseProblemParameter

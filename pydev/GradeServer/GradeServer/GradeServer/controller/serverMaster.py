@@ -26,7 +26,9 @@ from GradeServer.utils.checkInvalidAccess import check_invalid_access
 
 from GradeServer.utils.collegeParameter import CollegeParameter
 from GradeServer.utils.departmentParameter import DepartmentParameter
-from GradeServer.utils.utilUserQuery import join_member_informations
+from GradeServer.utils.utilUserQuery import select_all_users,\
+                                            join_member_informations,\
+                                            update_member_deleted
 from GradeServer.utils.utilProblemQuery import select_problems
 from GradeServer.utils.utilCourseQuery import select_registered_courses,\
                                              select_language_of_course,\
@@ -200,21 +202,15 @@ def get_num_of_problems():
     return nextIndex
 
 
-def delete_member(memberId):
+def delete_member(memberId, error = None):
     '''
     !!TODO
     
     deletion from DB is not a good way
     keep the tuple and make the member's information invalidate
     '''
-    error=None
-    
-    deleteTarget=dao.query(Members).\
-                     filter(Members.memberId==memberId).\
-                     first()
-    dao.delete(deleteTarget)
-    
     try:
+        update_member_deleted(memberId)
         dao.commit()
     except exc.SQLAlchemyError:
         error='Error has been occurred while deleting member'
@@ -222,8 +218,6 @@ def delete_member(memberId):
     return error
             
             
-
-                                         
                                          
 def get_department_name(departmentIndex, error = None):
     
@@ -1069,51 +1063,29 @@ def server_manage_user(activeTabId, pageNum):
     error=None
 
     try:
-        users=(dao.query(Members,
-                         Colleges,
-                         Departments).\
-                   join(DepartmentsDetailsOfMembers, 
-                        Members.memberId==\
-                        DepartmentsDetailsOfMembers.memberId).\
-                   join(Colleges,
-                        Colleges.collegeIndex==\
-                        DepartmentsDetailsOfMembers.collegeIndex).\
-                   join(Departments, 
-                        Departments.departmentIndex==\
-                        DepartmentsDetailsOfMembers.departmentIndex).\
-                   order_by(Members.memberId)).\
-              all()
-
-    except:
+        users = join_member_informations(select_all_users(isServerAdministrator = None,
+                                                          isCourseAdministrator = None).subquery())
+        count = select_count(users.subquery().\
+                                   c.\
+                                   memberId).first().\
+                                             count 
+        users = get_page_record(users,
+                                pageNum,
+                                int(35)).all()
+    except exc.SQLAlchemyError:
+        users = []
+        count  = 0
         '''
         It can prevent to handle next for-loop with setting 'users' empty
         '''
         error='Error has occurred while getting member information'
-        users=[]
     
-    combineSameUsers=[]
-    userIndex=1
-    loopIndex=0
     # if member in multiple department,
     # will be [member] [college] [department] [college] [department] ...
-    for user, college, department in users:
-        userInfo=[user.memberId, user.memberName, user.contactNumber,
-                  user.emailAddress, user.authority,
-                  user.signedInDate, user.lastAccessDate,
-                  college.collegeName, department.departmentName]
-        if loopIndex==0:
-            combineSameUsers.append(userInfo)
-        else:
-            if user.memberId==combineSameUsers[userIndex-1][0]:
-                combineSameUsers[userIndex-1].append(college.collegeName)
-                combineSameUsers[userIndex-1].append(department.departmentName)
-            else:
-                combineSameUsers.append(userInfo)
-                userIndex += 1
-        loopIndex += 1
         
     if request.method=='POST':
         for form in request.form:
+            print form
             error=delete_member(form)
             if error: break
             
@@ -1124,8 +1096,11 @@ def server_manage_user(activeTabId, pageNum):
 
     return render_template('/server_manage_user.html', 
                            error=error,
-                           users=combineSameUsers, 
-                           index=len(combineSameUsers))
+                           users = users, 
+                           activeTabId = activeTabId,
+                           pages = get_page_pointed(pageNum,
+                                                    count,
+                                                    int(35)))
 
 
 @GradeServer.route('/master/addUser', methods=['GET', 'POST'])
@@ -1295,17 +1270,16 @@ def server_add_user():
 
                 password=str(newUser[keys['memberId']])
                 password=generate_password_hash(TripleDES.encrypt(password))
-
                 freshman=Members(memberId=newUser[keys['memberId']], 
                                  password=password,
                                  memberName=newUser[keys['memberName']],
                                  authority=newUser[keys['authority']],
                                  signedInDate=datetime.now())
                 dao.add(freshman)
-                
                 try:
                     dao.commit()
-                except exc.SQLAlchemyError:
+                except exc.SQLAlchemyError as e:
+                    print e
                     dao.rollback()
                 
                 if add_new_departments_details_of_members(newUser[keys['memberId']],
@@ -1320,7 +1294,9 @@ def server_add_user():
             if error:
                 return redirect(url_for('.server_add_user'))
             
-            return redirect(url_for('.server_manage_user'))
+            return redirect(url_for('.server_manage_user',
+                                    activeTabId = OtherResources().const.ALL,
+                                    pageNum = int(1)))
             
         elif 'deleteUser' in request.form:
             for form in request.form:

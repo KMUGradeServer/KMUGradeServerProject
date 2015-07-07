@@ -45,7 +45,8 @@ def rank(activeTabCourseId, sortCondition, pageNum, error =None):
         findMemberId = None
         try:
             # Auto Complete MemberIds
-            memberRecords = select_all_users().all()
+            memberRecords = select_all_users(isServerAdministrator = None,
+                                             isCourseAdministrator = None).all()
         except Exception:
             memberRecords = []
             
