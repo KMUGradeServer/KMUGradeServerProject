@@ -77,6 +77,11 @@
 			</div>
 		</div>
 
+
+		<!-- 
+			@@ Showing registered problems
+		-->
+		
 		<table class="table table-bordered" id="registeredUsers" style="margin-top:10px">
 			<thead>
 				<tr>
@@ -102,41 +107,32 @@
 						{{ LanguageResources.const.Check[session['language']] }}
 						<input class="checkAll" type="checkbox" style="margin:0px" onclick="selectAllCheckboxes('registeredUsers');">
 			<tbody>
-				<script> index = {{ index }}; </script>
 				{%- for user in users %}
 				<tr>
-					<td><script> document.write(index--); </script>
-					<td>{{ user[0] }} <!-- member ID -->
+					<td>{{ loop.index }}
+					<td>{{ user.memberId }} <!-- member ID -->
 					<td> <!-- college & department information -->
-						{%- for index in range(7, user|length) %}
-							{{ user[index] }}
-							{%- if index % 2 == 0 %}
-							<br>
-							{% endif -%}
-						{% endfor -%}		
-					
-					<td>{{ user[1] }} <!-- member name -->
-					<!-- <td>{{ user[2] }} --><!-- member contact number -->
-					<td>{{ user[3] }} <!-- member email address -->
+						{{ user.collegeName }} {{ user.departmentName }}	
+					<td>{{ user.memberName }} <!-- member name -->
+					<!-- <td>{{ user.contactNumber }} --><!-- member contact number -->
+					<td>{{ user.emailAddress }} <!-- member email address -->
 					<!-- 
 						Now we set USER as Student, SERVER_ADMINISTRATOR as SA, COURSE_ADMINISTRATOR  as CA
 						Because meta values from DB are too long to show
 					-->
 					<td><!-- member authority -->
-						{%- for authority in user[4] %}
-							{%- if authority==SETResources.const.USER %}
-								Student
-							{% elif authority==SETResources.const.SERVER_ADMINISTRATOR %}
-								SA
-							{% elif authority==SETResources.const.COURSE_ADMINISTRATOR %}
-								CA
-							{% else %}
-								Unknown
-							{% endif -%}
-						{% endfor -%}
+						{%- if SETResources.const.USER in user.authority %}
+							Student
+						{% elif SETResources.const.SERVER_ADMINISTRATOR in user.authority %}
+							SA
+						{% elif SETResources.const.COURSE_ADMINISTRATOR in user.authority %}
+							CA
+						{% else %}
+							Unknown
+						{% endif -%}
 					<td><!-- member last access date -->
 						<script>
-						var date = "{{ user[6] }}"; //  user[5] is signed in date.
+						var date = "{{ user.lastAccessDate }}"; //  user[5] is signed in date.
 						if(date != "None"){
 							// slice from "YYYY-MM-DD hh:mm:ss" to "YY-MM-DD hh:mm"
 							date = date.substr(2,14);
@@ -148,7 +144,7 @@
 						</script>
 					<td>
 						<label class="checkbox-center">
-							<input class="box-check" name="{{ user[0] }}"
+							<input class="box-check" name="{{ user.memberId }}"
 									type="checkbox" form="deleteConfirm">
 						</label>
 				{% endfor -%}
