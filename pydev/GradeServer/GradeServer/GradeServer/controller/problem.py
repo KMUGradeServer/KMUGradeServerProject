@@ -8,7 +8,8 @@ from GradeServer.utils.loginRequired import login_required
 from GradeServer.utils.checkInvalidAccess import check_invalid_access
 
 from GradeServer.utils.utilPaging import get_page_pointed, get_page_record
-from GradeServer.utils.utilQuery import select_count, select_course_information
+from GradeServer.utils.utilQuery import select_count
+from GradeServer.utils.utilCourseQuery import select_registered_course
 from GradeServer.utils.utilSubmissionQuery import submissions_sorted, select_last_submissions, select_all_submissions, select_current_submissions,\
                                                   select_submissions_peoples_counts, select_solved_peoples_counts, select_submitted_records_of_problem,\
                                                   select_problem_chart_submissions, select_solved_submissions, select_submitted_files
@@ -68,7 +69,7 @@ def problem_list(courseId, pageNum):
             
         # Get Course Information
         try:
-            courseRecords = select_course_information(courseId).first()
+            courseRecords = select_registered_course(courseId).first()
         except:
             courseRecords = []
         

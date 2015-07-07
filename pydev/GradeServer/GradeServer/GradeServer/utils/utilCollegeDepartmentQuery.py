@@ -51,7 +51,8 @@ def select_department(departmentParameter, isAbolished = ENUMResources().const.F
 Join Colleges and Departments
 '''
 def join_departments_of_colleges(isAbolished = ENUMResources().const.FALSE):
-    return dao.query(DepartmentsOfColleges.departmentIndex,
+    return dao.query(DepartmentsOfColleges.collegeIndex,
+                     DepartmentsOfColleges.departmentIndex,
                      Colleges.collegeName,
                      Departments.departmentCode,
                      Departments.departmentName).\

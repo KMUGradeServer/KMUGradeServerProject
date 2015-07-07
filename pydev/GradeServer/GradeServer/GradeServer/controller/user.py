@@ -11,7 +11,8 @@ from GradeServer.utils.memberCourseProblemParameter import MemberCourseProblemPa
 
 from GradeServer.utils.utilPaging import get_page_pointed, get_page_record
 from GradeServer.utils.utilMessages import unknown_error, get_message
-from GradeServer.utils.utilQuery import select_count, select_match_member
+from GradeServer.utils.utilQuery import select_count
+from GradeServer.utils.utilUserQuery import select_match_member
 from GradeServer.utils.utilSubmissionQuery import submissions_sorted, select_all_submissions, select_member_chart_submissions
 from GradeServer.utils.utilUserQuery import join_member_informations, update_member_informations
 
@@ -132,7 +133,9 @@ def id_check(select, error = None):
                                                     activeTabId = OtherResources().const.ALL,
                                                     pageNum = int(1)))
                         elif select == 'server_manage_user':
-                            return redirect(url_for('.server_manage_user'))
+                            return redirect(url_for('.server_manage_user',
+                                                    activeTabId = OtherResources().const.ALL,
+                                                    pageNum = int(1)))
                         elif select == 'server_manage_service':
                             return redirect(url_for('.server_manage_service'))
                     # class manager

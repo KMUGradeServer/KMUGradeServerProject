@@ -64,15 +64,15 @@ $(function() {
 			    		case 3:
 			    			var collegeIndex = $("#" + keys[i-1] + "1 option:selected").text().match(/(\d+)/g);
 			    			var departmentIndex = $("#" + keys[i] + "1 option:selected").text().match(/(\d+)/g);
-			    			{%- for relation, collegeInfo, departmentInfo in allDepartments %}
-			    				if("{{ relation.collegeIndex }}" == collegeIndex){
+			    			{%- for department in allDepartments %}
+			    				if("{{ department.collegeIndex }}" == collegeIndex){
 								uploadObj += "<option";
-								if(departmentIndex == "{{ departmentInfo.departmentIndex }}"){
+								if(departmentIndex == "{{ department.departmentIndex }}"){
 									uploadObj += " selected";
 								}
 								uploadObj += 
-									">{{ departmentInfo.departmentIndex }} "+
-									"{{ departmentInfo.departmentName }}" +
+									">{{ department.departmentIndex }} "+
+									"{{ department.departmentName }}" +
 									"</option>";
 							}
 						{% endfor -%}	
@@ -476,11 +476,11 @@ function RowOnClickController(IdxOfRow){
 		document.getElementById("department"+IdxOfRow).innerHTML = "";
 		// variable 'relation' means the information of college-department relation
 		// college/department-Info just have its index and name
-		{%- for relation, collegeInfo, departmentInfo in allDepartments %}
-			{%- if relation.collegeIndex == college.collegeIndex %}
+		{%- for department in allDepartments %}
+			{%- if department.collegeIndex == college.collegeIndex %}
 			document.getElementById("department"+IdxOfRow).innerHTML += 
 				"<option>" +
-				"{{ departmentInfo.departmentIndex }} {{ departmentInfo.departmentName }}" +
+				"{{ department.departmentIndex }} {{ department.departmentName }}" +
 				"</option>";
 			{% endif -%}
 		{% endfor -%}
