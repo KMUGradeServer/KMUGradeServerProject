@@ -85,17 +85,11 @@ def sign_in():
                     
                     from werkzeug.security import check_password_hash
                     
-                    from GradeServer.resource.otherResources import OtherResources
-                    from GradeServer.py3Des.pyDes import *
+                    from GradeServer.GradeServer_py3des import TripleDES
                     
-                    tripleDes = triple_des(OtherResources().const.TRIPLE_DES_KEY,
-                                           mode = ECB,
-                                           IV = "\0\0\0\0\0\0\0\0",
-                                           pad = None,
-                                           padmode = PAD_PKCS5)
                     #Checking Success
                     if check_password_hash (check.password,
-                                            tripleDes.encrypt(str(password))):
+                                            TripleDES.encrypt(str(password))):
                         flash(get_message('login'))
                         #push Session Cache 
                         session[SessionResources().const.MEMBER_ID] = memberId

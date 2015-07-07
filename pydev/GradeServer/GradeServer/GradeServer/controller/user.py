@@ -4,8 +4,6 @@ from flask import request, render_template, url_for, redirect, session, flash
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from GradeServer.py3Des.pyDes import *
-
 from GradeServer.utils.loginRequired import login_required
 from GradeServer.utils.checkInvalidAccess import check_invalid_access
 
@@ -27,6 +25,7 @@ from GradeServer.controller.classMaster import *
 
 
 from GradeServer.GradeServer_logger import Log
+from GradeServer.GradeServer_py3des import TripleDES
 from GradeServer.GradeServer_blueprint import GradeServer
 
 @GradeServer.teardown_request
@@ -113,25 +112,25 @@ def id_check(select, error = None):
                 check = select_match_member(memberCourseProblemParameter = MemberCourseProblemParameter(memberId = memberId)).first()
                 
                                 # 암호가 일치 할 때
-                tripleDes = triple_des(OtherResources().const.TRIPLE_DES_KEY,
-                                       mode = ECB,
-                                       IV = "\0\0\0\0\0\0\0\0",
-                                       pad = None,
-                                       padmode = PAD_PKCS5)
                 #Checking Success
                 if check_password_hash (check.password,
-                                        tripleDes.encrypt(str(password))):
+                                        TripleDES.encrypt(str(password))):
                     # for all user
                     if select == 'account':
                         return redirect(url_for(RouteResources().const.EDIT_PERSONAL))
                     # server manager
                     elif SETResources().const.SERVER_ADMINISTRATOR in session[SessionResources().const.AUTHORITY][0]:
                         if select == 'server_manage_collegedepartment':
-                            return redirect(url_for('.server_manage_collegedepartment'))
+                            return redirect(url_for('.server_manage_collegedepartment', 
+                                                    collegePageNum = int(1),
+                                                    departmentPageNum = int(1)))
                         elif select == 'server_manage_class':
-                            return redirect(url_for('.server_manage_class'))
+                            return redirect(url_for('.server_manage_class',
+                                                    pageNum = int(1)))
                         elif select == 'server_manage_problem':
-                            return redirect(url_for('.server_manage_problem'))
+                            return redirect(url_for('.server_manage_problem',
+                                                    activeTabId = OtherResources().const.ALL,
+                                                    pageNum = int(1)))
                         elif select == 'server_manage_user':
                             return redirect(url_for('.server_manage_user'))
                         elif select == 'server_manage_service':
@@ -186,19 +185,13 @@ def edit_personal(error = None):
             #Password Same
             if(password and passwordConfirm) and password == passwordConfirm:
                 #Generate Password
-                tripleDes = triple_des(OtherResources().const.TRIPLE_DES_KEY,
-                                       mode = ECB,
-                                       IV = "\0\0\0\0\0\0\0\0",
-                                       pad = None,
-                                       padmode = PAD_PKCS5)
-                
                 # ID, Password NO
                 if password == memberInformation.password\
                    or password == memberInformation.memberId:
                     error = get_message('pattenFailed')
                 else:
                     
-                    password = generate_password_hash(tripleDes.encrypt(str(password)))
+                    password = generate_password_hash(TripleDES.encrypt(str(password)))
                     passwordConfirm = None
                     #Update DB
                     update_member_informations(select_match_member(memberCourseProblemParameter = MemberCourseProblemParameter(memberId = session[SessionResources().const.MEMBER_ID])),

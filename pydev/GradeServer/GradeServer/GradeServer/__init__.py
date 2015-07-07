@@ -23,6 +23,11 @@ def create_app(config_filepath ="resource/config.cfg"):
     from GradeServer.GradeServer_config import GradeServerConfig
     app.config.from_object(GradeServerConfig)
     app.config.from_pyfile(config_filepath, silent=True)
+    
+    # Triple DES
+    from GradeServer.GradeServer_py3des import TripleDES
+    TripleDES.init()
+    
     # Log
     from GradeServer.GradeServer_logger import Log
     Log.init()
