@@ -105,9 +105,9 @@ Article View Counting
 '''
 def update_view_reply_counting(articleParameter = ArticleParameter(), VIEW_INCREASE = 1, REPLY_INCREASE = 0):
     dao.query(ArticlesOnBoard).\
-            filter(ArticlesOnBoard.articleIndex == articleParameter.articleIndex).\
-            update(dict(viewCount = ArticlesOnBoard.viewCount + VIEW_INCREASE,
-                        replyCount = ArticlesOnBoard.replyCount + REPLY_INCREASE))
+        filter(ArticlesOnBoard.articleIndex == articleParameter.articleIndex).\
+        update(dict(viewCount = ArticlesOnBoard.viewCount + VIEW_INCREASE,
+                    replyCount = ArticlesOnBoard.replyCount + REPLY_INCREASE))
             
  
             

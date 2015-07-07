@@ -19,29 +19,48 @@ from sqlalchemy import func, and_, exc
 from datetime import datetime
 from werkzeug.security import generate_password_hash
 
-from GradeServer.database import dao
-from GradeServer.GradeServer_blueprint import GradeServer
+from GradeServer.GradeServer_py3des import TripleDES
 
 from GradeServer.utils.loginRequired import login_required
 from GradeServer.utils.checkInvalidAccess import check_invalid_access
 
-from GradeServer.model.registeredCourses import RegisteredCourses
-from GradeServer.model.languages import Languages
-from GradeServer.model.languagesOfCourses import LanguagesOfCourses
+from GradeServer.utils.collegeParameter import CollegeParameter
+from GradeServer.utils.departmentParameter import DepartmentParameter
+from GradeServer.utils.utilProblemQuery import select_problems
+from GradeServer.utils.utilCourseQuery import select_registered_courses,\
+                                             select_language_of_course,\
+                                             insert_language_of_course,\
+                                             insert_registered_course,\
+                                             update_registered_course_deleted
+from GradeServer.utils.utilCollegeDepartmentQuery import select_departments_of_college,\
+                                                        select_college,\
+                                                        select_colleges,\
+                                                        select_department,\
+                                                        select_departments,\
+                                                        join_departments_of_colleges,\
+                                                        update_college_abolished,\
+                                                        update_department_abolished,\
+                                                        insert_relation_in_college_department,\
+                                                        insert_college,\
+                                                        insert_department
+from GradeServer.utils.utilQuery import select_count
+from GradeServer.utils.utilPaging import get_page_pointed, get_page_record
+
+from GradeServer.model.problems import Problems
 from GradeServer.model.members import Members
-from GradeServer.model.colleges import Colleges
-from GradeServer.model.departmentsDetailsOfMembers import DepartmentsDetailsOfMembers
 from GradeServer.model.departments import Departments
 from GradeServer.model.courses import Courses
-from GradeServer.model.departmentsOfColleges import DepartmentsOfColleges
-from GradeServer.model.problems import Problems
+from GradeServer.model.registeredCourses import RegisteredCourses
+from GradeServer.model.languages import Languages
+from GradeServer.model.colleges import Colleges
+from GradeServer.model.departmentsDetailsOfMembers import DepartmentsDetailsOfMembers
 
 from GradeServer.resource.setResources import SETResources
 from GradeServer.resource.enumResources import ENUMResources
-from GradeServer.resource.sessionResources import SessionResources
 from GradeServer.resource.otherResources import OtherResources
-from GradeServer.resource.languageResources import LanguageResources
-from GradeServer.resource.messageResources import MessageResources
+
+from GradeServer.database import dao
+from GradeServer.GradeServer_blueprint import GradeServer
 
 import re
 import zipfile
@@ -62,162 +81,56 @@ newDepartments=[]
 
 currentTab='colleges'
 
-from GradeServer.py3Des.pyDes import *
-def initialize_tripleDes_class():
-    tripleDes=triple_des(OtherResources().const.TRIPLE_DES_KEY,
-                           mode=ECB,
-                           IV='\0\0\0\0\0\0\0\0',
-                           pad=None,
-                           padmode=PAD_PKCS5)
-    return tripleDes
 
-
-def is_exist_college(collegeName):
+def change_abolishment_of_department_true(collegeIndex, error = None):
     try:
-        dao.query(Colleges).\
-            filter(Colleges.collegeName==str(collegeName)).\
-            first().\
-            collegeName
-    except:
-        return False
-    
-    return True
-
-
-def change_abolishment_of_college_false(collegeName):
-    error=None
-
-    dao.query(Colleges).\
-        filter(Colleges.collegeName==str(collegeName)).\
-        update(dict(isAbolished=SETResources().const.FALSE))
-        
-    try:
-        dao.commit()
-    except exc.SQLAlchemyError:
-        error='Error has been occurred while changing abolishment to FALSE'
-    
-    return error
-
-
-def change_abolishment_of_college_true(collegeIndex):
-    error=None
-
-    dao.query(Colleges).\
-        filter(Colleges.collegeIndex==collegeIndex).\
-        update(dict(isAbolished=SETResources().const.TRUE))
-    
-    try:
-        dao.commit()
-    except exc.SQLAlchemyError:
-        error='Error has been occurred while changing abolishment to TRUE'
-    
-    return error
-
-
-def get_departments_of_college(collegeIndex):
-    error=None
-    try:
-        departments=(dao.query(DepartmentsOfColleges,
-                               Departments).\
-                         join(Departments,
-                              Departments.departmentIndex==\
-                              DepartmentsOfColleges.departmentIndex).\
-                         filter(DepartmentsOfColleges.collegeIndex==\
-                                collegeIndex)).\
-                    all()
-    except:
-        error='Error has been occurred while searching departments'
-        
-    return error, departments
-
-
-def change_abolishment_of_department_true(index):
-    error, departments=get_departments_of_college(index)
-
-    if error:
-        return error
-    '''
-    !!TODO
-    remove duplicated code
-    '''
-    '''
-    When the parameter is departmentIndex,
-    get_departments_of_college will be empty
-    '''
-    if departments:
+        departments = select_departments_of_college(collegeIndex).all()
+        '''
+        !!TODO
+        remove duplicated code
+        '''
+        '''
+        When the parameter is departmentIndex,
+        get_departments_of_college will be empty
+        '''
         for _, departmentInfo in departments: 
-            if departmentInfo.isAbolished=='FALSE':
-                dao.query(Departments).\
-                    filter(Departments.departmentIndex==\
-                           departmentInfo.departmentIndex).\
-                    update(dict(isAbolished=SETResources().const.TRUE))
+            if departmentInfo.isAbolished == ENUMResources().const.FALSE:
+                update_department_abolished(DepartmentParameter(departmentIndex = departmentInfo.departmentIndex),
+                                            ENUMResources().const.TRUE)
                 
                 try:
                     dao.commit()
                 except exc.SQLAlchemyError:
+                    dao.rollback()
                     error='Error has been occurred while changing abolishment to TRUE'
                     break
-    
-    else:
-        dao.query(Departments).\
-            filter(Departments.departmentIndex==index).\
-            update(dict(isAbolished=SETResources().const.TRUE))
-            
-        try:
-            dao.commit()
-        except exc.SQLAlchemyError:
-            error='Error has been occurred while changing abolishment to TRUE'
+        
+    except Exception:
+        error = 'Error has been occurred while searching departments'
         
     return error
                 
                 
-def delete_relation_in_college_department(collegeIndex, departmentIndex):
-    error=None
-    if collegeIndex:
-        target=dao.query(DepartmentsOfColleges).\
-                   filter(DepartmentsOfColleges.collegeIndex==\
-                          collegeIndex).\
-                   first()
-    else:
-        target=dao.query(DepartmentsOfColleges).\
-                   filter(DepartmentsOfColleges.departmentIndex==\
-                          departmentIndex).\
-                   first()
-                   
-    dao.delete(target)
+
+def add_relation_in_college_department(collegeIndex, departmentIndex, error = None):
     
     try:
-        dao.commit()
-    except exc.SQLAlchemyError:
-        error='Error has been occurred while deleting relation of college and department'
-    
-    return error
-
-
-def add_relation_in_college_department(collegeIndex, departmentIndex):
-    error=None
-    
-    relationToCollege=DepartmentsOfColleges(collegeIndex=collegeIndex,
-                                            departmentIndex=departmentIndex)
-    dao.add(relationToCollege)
-    
-    try:
+        dao.add(insert_relation_in_college_department(collegeIndex,
+                                                      departmentIndex))
         dao.commit()
     except exc.SQLAlchemyError:
         dao.rollback()
         error='Error has been occurred while making new relation of department'
         
     return error
+       
                         
                                             
-def add_new_college(collegeCode, collegeName):
-    error=None
-    
-    newCollege=Colleges(collegeCode=collegeCode,
-                        collegeName=collegeName)
-    dao.add(newCollege)
+def add_new_college(collegeCode, collegeName, error = None):
     
     try:
+        dao.add(insert_college(collegeCode,
+                               collegeName))
         dao.commit()
     except exc.SQLAlchemyError:
         dao.rollback()
@@ -226,14 +139,11 @@ def add_new_college(collegeCode, collegeName):
     return error
                         
                         
-def add_new_departments(departmentCode, departmentName):
-    error=None
-    
-    newDepartment=Departments(departmentCode=departmentCode,
-                              departmentName=departmentName)
-    dao.add(newDepartment)
-    
+def add_new_departments(departmentCode, departmentName, error = None):
+
     try:
+        dao.add(insert_department(departmentCode,
+                              departmentName))
         dao.commit()
     except exc.SQLAlchemyError:
         dao.rollback()
@@ -242,52 +152,7 @@ def add_new_departments(departmentCode, departmentName):
     return error
                         
 
-def delete_registered_course(courseId):
-    error=None
-    
-    deleteTarget=dao.query(RegisteredCourses).\
-                     filter(RegisteredCourses.courseId==courseId).\
-                     first()
-    dao.delete(deleteTarget)
-    
-    try:
-        dao.commit()
-    except exc.SQLAlchemyError:
-        error='Error has been occurred while deleting registered course'
-    
-    return error
-                
 
-def get_registered_courses():
-    try:
-        courses=(dao.query(RegisteredCourses,
-                           Members).\
-                     join(Members,
-                          Members.memberId==\
-                          RegisteredCourses.courseAdministratorId).\
-                 order_by(RegisteredCourses.endDateOfCourse.desc())).\
-        all()
-    except:
-        courses=[]
-        
-    return courses
-        
-                    
-def get_languages_of_course():    
-    try:
-        languagesOfCourse=dao.query(LanguagesOfCourses.courseId, 
-                                    Languages.languageIndex,
-                                    Languages.languageName).\
-                               join(Languages,
-                                    LanguagesOfCourses.languageIndex==\
-                                    Languages.languageIndex).\
-                              all()
-    except:
-        languagesOfCourse=[]
-    
-    return languagesOfCourse
-        
-                                                        
 def get_num_of_problems_in_difficulty(difficultyOfProblem):
     try:
         numOfProblems=dao.query(Problems.problemId).\
@@ -300,17 +165,6 @@ def get_num_of_problems_in_difficulty(difficultyOfProblem):
     return numOfProblems
                         
                           
-def get_uploaded_problems():
-    try:
-        uploadedProblems=dao.query(Problems).\
-                             filter(Problems.isDeleted==\
-                                    ENUMResources().const.FALSE).\
-                             all()
-    except:
-        uploadedProblems=[]
-    
-    return uploadedProblems
-        
                                          
 def add_new_problem(newProblemInfo):
     error=None
@@ -367,64 +221,25 @@ def delete_member(memberId):
     return error
             
             
-def get_colleges():
-    try:
-        allColleges=dao.query(Colleges).\
-                        filter(Colleges.isAbolished==\
-                               SETResources().const.FALSE).\
-                        all()
-    except:
-        allColleges=[]
-        
-    return allColleges
-        
-        
-def get_departments_with_college_info():
-    try:
-        allDepartments=(dao.query(DepartmentsOfColleges,
-                                  Colleges,
-                                  Departments).\
-                            filter(and_(Colleges.isAbolished==\
-                                      SETResources().const.FALSE,
-                                      Departments.isAbolished==\
-                                      SETResources().const.FALSE)).\
-                            join(Colleges,
-                                 Colleges.collegeIndex==\
-                                 DepartmentsOfColleges.collegeIndex).\
-                            join(Departments,
-                                 Departments.departmentIndex==\
-                                 DepartmentsOfColleges.departmentIndex)).\
-                       all()
 
-    except:
-        allDepartments=[]
-        
-    return allDepartments
                                          
                                          
-def get_department_name(departmentIndex):
-    error=None
+def get_department_name(departmentIndex, error = None):
     
     try:
-        departmentName=dao.query(Departments).\
-                           filter(Departments.departmentIndex==\
-                                  departmentIndex).\
-                           first().\
-                           departmentName
+        departmentName = select_department(DepartmentParameter(departmentIndex = departmentIndex)).first().\
+                                                                                                   departmentName
     except:
         error='Error has been occurred while searching department name'
         
     return error, departmentName 
                         
                                                                  
-def get_college_name(collegeIndex):
-    error=None
+def get_college_name(collegeIndex, error = None):
     
     try:
-        collegeName=dao.query(Colleges).\
-                             filter(Colleges.collegeIndex==collegeIndex).\
-                             first().\
-                             collegeName
+        collegeName = select_college(CollegeParameter(collegeIndex = collegeIndex)).first().\
+                                                                                    collegeName
     except:
         error='Error has been occurred while searching college name'
         
@@ -451,11 +266,16 @@ def delete_problem(problemId):
     return error
                 
 
-def change_abolishment_relates_college(collegeIndex):
-    error=change_abolishment_of_college_true(collegeIndex)
-    
+def change_abolishment_relates_college(collegeIndex, error = None):
+    try:
+        update_college_abolished(CollegeParameter(collegeIndex = collegeIndex), 
+                                 ENUMResources().const.TRUE)
+        dao.commit()
+    except exc.SQLAlchemyError:
+        error = 'Error has been occurred while changing abolishment to TRUE'
+        
     if not error:    
-        error=change_abolishment_of_department_true(collegeIndex)
+        error = change_abolishment_of_department_true(collegeIndex)
     
     return error
 
@@ -592,14 +412,11 @@ def add_new_departments_details_of_members(memberId, collegeIndex, departmentInd
     return error
                 
 
-def add_new_language_of_course(courseNum, languageIndex):
-    error=None
-    
-    newCourseLanguage=LanguagesOfCourses(courseId=courseNum, 
-                                           languageIndex=languageIndex)
-    dao.add(newCourseLanguage)
-    
+def add_new_language_of_course(courseNum, languageIndex, error = None):
+
     try:
+        dao.add(insert_language_of_course(courseId = courseNum,
+                                      languageIndex = languageIndex))
         dao.commit()
     except exc.SQLAlchemyError:
         dao.rollback()
@@ -610,19 +427,15 @@ def add_new_language_of_course(courseNum, languageIndex):
  
 def register_new_course(courseId, courseName, courseDescription,
                                     startDateOfCourse, endDateOfCourse,
-                                    courseAdministratorId):
-    error=None
-    
-    newCourse=\
-        RegisteredCourses(courseId=courseId, 
-                          courseName=courseName, 
-                          courseDescription=courseDescription,
-                          startDateOfCourse=startDateOfCourse, 
-                          endDateOfCourse=endDateOfCourse, 
-                          courseAdministratorId=courseAdministratorId)
-    dao.add(newCourse)
-
-    try:
+                                    courseAdministratorId, error = None):
+    try:    
+        dao.add(insert_registered_course(courseId,
+                                         courseName,
+                                         courseDescription,
+                                         startDateOfCourse,
+                                         endDateOfCourse,
+                                         courseAdministratorId,
+                                         'FALSE'))
         dao.commit()
     except exc.SQLAlchemyError:
         dao.rollback()
@@ -631,22 +444,43 @@ def register_new_course(courseId, courseName, courseDescription,
     return error
             
                                           
-@GradeServer.route('/master/manage_collegedepartment', methods=['GET', 'POST'])
+@GradeServer.route('/master/manage_collegedepartment/page<int:collegePageNum>-<int:departmentPageNum>', methods=['GET', 'POST'])
 @check_invalid_access
 @login_required
-def server_manage_collegedepartment():
+def server_manage_collegedepartment(collegePageNum, departmentPageNum):
     global newColleges, newDepartments
     global currentTab
     
-    error=None
+    error = None
     
     # moved from other page, then show 'college' tab
     if request.referrer.rsplit('/', 1)[1] != 'manage_collegedepartment':
         currentTab='colleges'
     
-    allColleges=get_colleges()
-    allDepartments=get_departments_with_college_info()
-                
+    try:
+        allColleges = select_colleges()
+        collegeCount = select_count(allColleges.subquery().\
+                                                c.\
+                                                collegeIndex).first().\
+                                                              count
+        allColleges = get_page_record(allColleges,
+                                      pageNum = collegePageNum).all()                                       
+    except exc.SQLAlchemyError:
+        allColleges = []
+        collegeCount = 0
+
+    try:
+        allDepartments = join_departments_of_colleges()
+        departmentCount = select_count(allDepartments.subquery().\
+                                                      c.\
+                                                      departmentIndex).first().\
+                                                      count
+        allDepartments = get_page_record(allDepartments,
+                                         pageNum = departmentPageNum).all()                                     
+    except exc.SQLAlchemyError:
+        allDepartments = []
+        departmentCount = 0
+           
     if request.method=='POST':
         # initialization
         isNewCollege=False
@@ -703,8 +537,15 @@ def server_manage_collegedepartment():
                 newColleges.append(newCollege[index])
             for newPart in newColleges:
                 if newPart[1]:
-                    if is_exist_college(newPart[1]):
-                        error=change_abolishment_of_college_false(newPart[1])
+                    if select_college(CollegeParameter(collegeIndex = None,
+                                                       collegeName = newPart[1])).first():
+                        try:
+                            update_college_abolished(CollegeParameter(collegeIndex =None,
+                                                                      collegeName = newPart[1]))
+                            dao.commit()
+                        except exc.SQLAlchemyError:
+                            dao.rollback()
+                            error = 'Error has been occurred while changing abolishment to FALSE'
                         break
                     
                     error=add_new_college(newPart[0], newPart[1])
@@ -736,44 +577,67 @@ def server_manage_collegedepartment():
         # if there's an error in the last loop, can't handle in the loop with current structure
         # So, needs additional code out of the loop 
         if not error:
-            return redirect(url_for('.server_manage_collegedepartment'))
-        
+            return redirect(url_for('.server_manage_collegedepartment',
+                                    collegePageNum = collegePageNum,
+                                    departmentPageNum = departmentPageNum))
+            
     return render_template('/server_manage_collegedepartment.html', 
                            error=error, 
-                           SETResources=SETResources,
-                           SessionResources=SessionResources,
-                           LanguageResources=LanguageResources,
                            currentTab=currentTab,
                            allColleges=allColleges,
-                           allDepartments=allDepartments)
+                           allDepartments=allDepartments,
+                           collegePages = get_page_pointed(pageNum = collegePageNum,
+                                                           count = collegeCount),
+                           departmentPages = get_page_pointed(pageNum = departmentPageNum,
+                                                              count = departmentCount))
         
         
-@GradeServer.route('/master/manage_class', methods=['GET', 'POST'])
+@GradeServer.route('/master/manage_class/page<int:pageNum>', methods=['GET', 'POST'])
 @check_invalid_access
 @login_required
-def server_manage_class():       
+def server_manage_class(pageNum):       
     error=None
     
-    courses=get_registered_courses()
-    languagesOfCourse=get_languages_of_course()
-
+    try:
+        courses = select_registered_courses()
+        count = select_count(courses.subquery().\
+                                     c.\
+                                     courseId).first().\
+                                               count
+        courses = get_page_record(courses,
+                                  pageNum = pageNum).all()
+    except exc.SQLAlchemyError:
+        courses = []
+        count = 0
+        
+    try:
+        languagesOfCourse = select_language_of_course().all()
+    except exc.SQLAlchemyError:
+        languagesOfCourse = []
+        
     if request.method=='POST':
         for form in request.form:
-            error=delete_registered_course(form)
-            if error: break
+            try:
+                update_registered_course_deleted(form)
+                dao.commit()
+            except exc.SQLAlchemyError:
+                dao.rollback()
+                error = 'Error has been occurred while deleting registered course'
+                
+                break
             
-        return redirect(url_for('.server_manage_class'))
+        return redirect(url_for('.server_manage_class',
+                                pageNum = pageNum))
     
     if not error:
-        session['ownCourses']=dao.query(RegisteredCourses).all()
+        session['ownCourses'] = select_registered_courses().all()
     
     return render_template('/server_manage_class.html',
                            error=error,  
-                           SETResources=SETResources,
-                           SessionResources=SessionResources,
-                           LanguageResources=LanguageResources,
-                           courses=courses, 
-                           languagesOfCourse=languagesOfCourse)
+                           courses=courses,
+                           languagesOfCourse = languagesOfCourse,
+                           pages = get_page_pointed(pageNum = pageNum,
+                                                    count = count))
     
     
 @GradeServer.route('/master/add_class', methods=['GET', 'POST'])
@@ -793,7 +657,7 @@ def server_add_class():
     languages=[]
     
     try:
-        allCourses=dao.query(Courses).\
+        allCourses =dao.query(Courses).\
                          all()
     except:
         error='Error has been occurred while searching courses'
@@ -858,9 +722,6 @@ def server_add_class():
             else:
                 return render_template('/server_add_class.html', 
                                        error=error, 
-                                       SETResources=SETResources,
-                                       SessionResources=SessionResources,
-                                       LanguageResources=LanguageResources,
                                        courseAdministrator=courseAdministrator,
                                        semester=semester,
                                        courseDescription=courseDescription,
@@ -902,9 +763,6 @@ def server_add_class():
                                    courseAdministrator.split(' ')[0]):
                 return render_template('/server_add_class.html', 
                                        error=error, 
-                                       SETResources=SETResources,
-                                       SessionResources=SessionResources,
-                                       LanguageResources=LanguageResources,
                                        courses=allCourses, 
                                        languages=allLanguages)
             
@@ -921,19 +779,14 @@ def server_add_class():
                 if add_new_language_of_course(newCourseNum, int(languageIndex)):
                     return render_template('/server_add_class.html', 
                                            error=error, 
-                                           SETResources=SETResources,
-                                           SessionResources=SessionResources,
-                                           LanguageResources=LanguageResources,
                                            courses=allCourses, 
                                            languages=allLanguages)
                     
-            return redirect(url_for('.server_manage_class'))
+            return redirect(url_for('.server_manage_class',
+                                    pageNum = int(1)))
 
     return render_template('/server_add_class.html', 
                            error=error, 
-                           SETResources=SETResources,
-                           SessionResources=SessionResources,
-                           LanguageResources=LanguageResources,
                            courseAdministrator=courseAdministrator,
                            semester=semester,
                            courseDescription=courseDescription,
@@ -947,10 +800,10 @@ def server_add_class():
                            allCourseAdministrators=allCourseAdministrators)
     
     
-@GradeServer.route('/master/manage_problem', methods=['GET', 'POST'])
+@GradeServer.route('/master/manage_problem-<activeTabId>/page<int:pageNum>', methods=['GET', 'POST'])
 @check_invalid_access
 @login_required
-def server_manage_problem():
+def server_manage_problem(activeTabId, pageNum):
     global projectPath
     global numberOfDifficulty
     error=None
@@ -1170,21 +1023,42 @@ def server_manage_problem():
         if error:
             return render_template('/server_manage_problem.html', 
                                    error=error, 
-                                   SETResources=SETResources,
-                                   SessionResources=SessionResources,
-                                   LanguageResources=LanguageResources,
-                                   uploadedProblems=[])    
+                                   uploadedProblems=[],
+                                   difficultyList = (OtherResources().const.ALL,
+                                                     OtherResources().const.GOLD,
+                                                     OtherResources().const.SILVER,
+                                                     OtherResources().const.BRONZE),
+                                   activeTabId = activeTabId,
+                                   pages = get_page_pointed(int(0),
+                                                            int(0)))    
             
-        return redirect(url_for('.server_manage_problem'))
+        return redirect(url_for('.server_manage_problem',
+                                activeTabId = activeTabId,
+                                pageNum = pageNum))
         
-    uploadedProblems=get_uploaded_problems()
-                
+        
+    try:
+        uploadedProblems = select_problems(activeTabId)
+        count = select_count(uploadedProblems.subquery().\
+                                              c.\
+                                              problemId).first().\
+                                                         count
+        uploadedProblems = get_page_record(uploadedProblems,
+                                           pageNum = pageNum).all()   
+    except exc.SQLAlchemyError:
+        uploadedProblems=[]
+        count = 0
+        
     return render_template('/server_manage_problem.html', 
                            error=error, 
-                           SETResources=SETResources,
-                           SessionResources=SessionResources,
-                           LanguageResources=LanguageResources,
-                           uploadedProblems=uploadedProblems)
+                           uploadedProblems = uploadedProblems,
+                           difficultyList = (OtherResources().const.ALL,
+                                             OtherResources().const.GOLD,
+                                             OtherResources().const.SILVER,
+                                             OtherResources().const.BRONZE),
+                           activeTabId = activeTabId,
+                           pages = get_page_pointed(pageNum,
+                                                    count))
 
 
 @GradeServer.route('/master/manage_users', methods=['GET', 'POST'])
@@ -1247,9 +1121,6 @@ def server_manage_user():
 
     return render_template('/server_manage_user.html', 
                            error=error,
-                           SETResources=SETResources,
-                           SessionResources=SessionResources,
-                           LanguageResources=LanguageResources,
                            users=combineSameUsers, 
                            index=len(combineSameUsers))
 
@@ -1263,8 +1134,15 @@ def server_add_user():
     targetUserIdToDelete=[]
     authorities=['Course Admin', 'User']
     
-    allColleges=get_colleges()
-    allDepartments=get_departments_with_college_info()
+    try:
+        allColleges = select_colleges().all()
+    except exc.SQLAlchemyError:
+        allColleges = []
+        
+    try:
+        allDepartments = select_departments().all()
+    except exc.SQLAlchemyError:
+        allDepartments = []
         
     if request.method=='POST':
         keys={'memberId':0,
@@ -1310,9 +1188,6 @@ def server_add_user():
             if error:
                 return render_template('/server_add_user.html', 
                                        error=error,  
-                                       SETResources=SETResources,
-                                       SessionResources=SessionResources,
-                                       LanguageResources=LanguageResources,
                                        allColleges=allColleges,
                                        allDepartments=allDepartments,
                                        authorities=authorities,
@@ -1377,9 +1252,6 @@ def server_add_user():
                         if error:
                             return render_template('/server_add_user.html',
                                                    error=error,
-                                                   SETResources=SETResources,
-                                                   SessionResources=SessionResources,
-                                                   LanguageResources=LanguageResources,
                                                    allColleges=allColleges,
                                                    allDepartments=allDepartments,
                                                    authorities=authorities,
@@ -1395,9 +1267,6 @@ def server_add_user():
                                 error='There is a duplicated user id. Check the file and added user list'
                                 return render_template('/server_add_user.html',
                                                        error=error,
-                                                       SETResources=SETResources,
-                                                       SessionResources=SessionResources,
-                                                       LanguageResources=LanguageResources,
                                                        allColleges=allColleges,
                                                        allDepartments=allDepartments,
                                                        authorities=authorities,
@@ -1416,17 +1285,13 @@ def server_add_user():
                     error='Wrong access'
                     return render_template('/server_add_user.html',
                                            error=error,
-                                           SETResources=SETResources,
-                                           SessionResources=SessionResources,
-                                           LanguageResources=LanguageResources,
                                            allColleges=allColleges,
                                            allDepartments=allDepartments,
                                            authorities=authorities,
                                            newUsers=newUsers)
 
-                tripleDes=initialize_tripleDes_class()
                 password=str(newUser[keys['memberId']])
-                password=generate_password_hash(tripleDes.encrypt(password))
+                password=generate_password_hash(TripleDES.encrypt(password))
 
                 freshman=Members(memberId=newUser[keys['memberId']], 
                                  password=password,
@@ -1474,9 +1339,6 @@ def server_add_user():
     
     return render_template('/server_add_user.html', 
                            error=error,  
-                           SETResources=SETResources,
-                           SessionResources=SessionResources,
-                           LanguageResources=LanguageResources,
                            allColleges=allColleges,
                            allDepartments=allDepartments,
                            authorities=authorities,
@@ -1491,7 +1353,4 @@ def server_manage_service():
     error=None
     
     return render_template('/server_manage_service.html',
-                           error=error,
-                           SETResources=SETResources,
-                           SessionResources=SessionResources,
-                           LanguageResources=LanguageResources)
+                           error=error)

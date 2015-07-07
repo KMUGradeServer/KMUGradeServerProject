@@ -12,7 +12,7 @@ def get_page_pointed(pageNum, count, LIST = OtherResources().const.LIST, BLOCK =
     #Show List
     startList = (pageNum - 1) * LIST
     endList = (pageNum * LIST) if startList + LIST < count - 1 else count
-    
+
     #show Page
     allPage = int(math.ceil(count / float(LIST)))
     extraPage = BLOCK / 2
@@ -22,7 +22,7 @@ def get_page_pointed(pageNum, count, LIST = OtherResources().const.LIST, BLOCK =
     #Minimum Page
     if endPage > allPage:
         endPage = allPage
-        
+
     return {'LIST': LIST,
             'BLOCK': BLOCK,
             'count': count,

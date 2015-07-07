@@ -117,38 +117,92 @@
 			</div>
 		</div>
 
+
 		<!-- 
 			@@ Showing registered problems
 		-->
-		<table class="table table-bordered" id="registeredProblems"
-				style="margin-top:10px">
-			<thead>
-				<tr>
-					<td>
-						{{ LanguageResources.const.ID[session['language']] }}
-					<td>
-						{{ LanguageResources.const.Name[session['language']] }}
-					<td>
-						Solution/Checker
-					<td>
-						{{ LanguageResources.const.Check[session['language']] }}
-						<input class="checkAll" type="checkbox" style="margin:0px"
-								onclick="selectAllCheckboxes('registeredProblems');">
-			<tbody>
-				{%- for uploadedProblem in uploadedProblems %}
-				<tr>
-					<td>{{ uploadedProblem.problemId }}
-					<td>{{ uploadedProblem.problemName }}
-					<td>{{ uploadedProblem.solutionCheckType }}
-					<td>
-						<label class="checkbox-center">
-							<input class="box-check" name="{{ uploadedProblem.problemId }}"
-									type="checkbox" value="{{ uploadedProblem.problemId }}"
-									form="deleteProblem">
-						</label>
-				{% endfor -%}
-			</form> <!-- for IE, we need to cover all 'form tags' into the '<form>' tag between -->
-		</table>
+		
+		<div class="tabbable">
+			<ul class="nav nav-tabs">
+			<!-- tab active setting -->
+			{% for diff in difficultyList %}
+				{% if diff == activeTabId %}
+				<li class="active">
+					<a href = '#{{ diff }}' data-toggle="tab">
+						{% if diff %}{{ diff }}{% endif %}
+					</a>
+				{% else %}
+				<li>
+					<a href = '{{ url_for ("GradeServer.server_manage_problem", activeTabId = diff, pageNum = 1) }}'>
+						{% if diff %}{{ diff }}{% endif %}
+					</a>
+				{% endif %}
+			{% endfor %}
+			</ul>
+			
+			<!-- posts -->
+			<div class="tab-content">
+			<!-- ActiveTab posts -->
+				<div id="{{ activeTabId }}" class = 'active'>
+					<table class="table table-bordered" id="registeredProblems"
+							style="margin-top:10px">
+						<thead>
+							<tr>
+								<td>
+									{{ LanguageResources.const.ID[session['language']] }}
+								<td>
+									{{ LanguageResources.const.Name[session['language']] }}
+								<td>
+									Solution/Checker
+								<td>
+									{{ LanguageResources.const.Check[session['language']] }}
+									<input class="checkAll" type="checkbox" style="margin:0px"
+											onclick="selectAllCheckboxes('registeredProblems');">
+						<tbody>
+							{%- for uploadedProblem in uploadedProblems %}
+							<tr>
+								<td>{{ uploadedProblem.problemId }}
+								<td>{{ uploadedProblem.problemName }}
+								<td>{{ uploadedProblem.solutionCheckType }}
+								<td>
+									<label class="checkbox-center">
+										<input class="box-check" name="{{ uploadedProblem.problemId }}"
+												type="checkbox" value="{{ uploadedProblem.problemId }}"
+												form="deleteProblem">
+									</label>
+							{% endfor -%}
+						</form> <!-- for IE, we need to cover all 'form tags' into the '<form>' tag between -->
+					</table>
+					<!-- page number section -->
+					<div class="pagination pagination-centered">
+						<ul>
+							{%- if pages['pageNum'] > pages['BLOCK'] %}
+							<li>
+								<a href="{{ url_for ('GradeServer.server_manage_problem', activeTabId = activeTabId, pageNum =pages['pageNum'] - 1) }}"><</a>
+							{% endif -%}
+							
+							{%- for i in range (pages['startPage'], pages['endPage'] +1) %}
+							<li>
+								{%- if pages['pageNum'] == i %}
+								<a style ='background-color:gray'>
+								{%- else %}
+								<a href="{{ url_for ('GradeServer.server_manage_problem', activeTabId = activeTabId, pageNum = i) }}">
+								{% endif -%}
+									{{ i }}
+								</a>
+							{% endfor -%}
+							
+							{%- if pages['endPage'] < pages ['allPage'] %}
+							<li>
+								<a href="{{ url_for ('GradeServer.server_manage_problem', activeTabId = activeTabId, pageNum =pages['pageNum'] + 1) }}">></a>
+							{% endif -%}
+					</div>
+					<!-- End Paging -->
+				</div>
+			</div>
+			<!-- end posts -->
+		</div>
+		
 	</div>
 </div>
 {% endblock -%}

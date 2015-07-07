@@ -24,6 +24,9 @@ class OtherResources(object):
     const.SOLVED_PROBLEM = 'solvedProblem'
     
     const.ALL = 'All'
+    const.GOLD = 'Gold'
+    const.SILVER = 'Silver'
+    const.BRONZE = 'Bronze'
     const.GET_FILES = 'file[]'
     const.USED_LANGUAGE_NAME = 'usedLanguageName'
     const.GET_CODE = 'getCode'

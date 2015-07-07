@@ -9,7 +9,7 @@ from GradeServer.utils.checkInvalidAccess import check_invalid_access
 from GradeServer.utils.memberCourseProblemParameter import MemberCourseProblemParameter
 
 from GradeServer.utils.utilPaging import get_page_pointed, get_page_record
-from GradeServer.utils.utilQuery import select_all_users, select_count, select_match_member_sub, select_accept_courses
+from GradeServer.utils.utilQuery import select_all_users, select_count, select_match_member_sub, select_accept_courses, select_current_courses
 from GradeServer.utils.utilRankQuery import select_ranks, ranks_sorted
 from GradeServer.utils.utilSubmissionQuery import select_last_submissions
 from GradeServer.utils.utilMessages import unknown_error, get_message
@@ -96,7 +96,7 @@ def rank(activeTabCourseId, sortCondition, pageNum, error =None):
             rankMemberRecords = []
         
         try:
-            myCourses = select_accept_courses().all()
+            myCourses = select_current_courses(select_accept_courses().subquery()).all()
         except Exception:
             myCourses = []
         # myCourses Default Add ALL
