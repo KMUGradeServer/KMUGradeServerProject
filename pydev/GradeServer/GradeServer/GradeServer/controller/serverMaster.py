@@ -1064,7 +1064,8 @@ def server_manage_user(activeTabId, pageNum):
 
     try:
         users = join_member_informations(select_all_users(isServerAdministrator = None,
-                                                          isCourseAdministrator = None).subquery())
+                                                          isCourseAdministrator = SETResources().const.COURSE_ADMINISTRATOR,
+                                                          isUser = None).subquery())
         count = select_count(users.subquery().\
                                    c.\
                                    memberId).first().\
