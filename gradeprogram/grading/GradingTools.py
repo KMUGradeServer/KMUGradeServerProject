@@ -48,8 +48,8 @@ class GradingTools(object):
         strip = string.rstrip
         
         for i in xrange(_min):
-            stdLine = strip(stdLines[i], '\r\n')
-            answerLine = strip(answerLines[i], '\r\n')
+            stdLine = strip(stdLines[i], '\r\n ')
+            answerLine = strip(answerLines[i], '\r\n ')
             
             if stdLine != answerLine:   # if not same each line
                 count += 1
@@ -85,7 +85,7 @@ class GradingTools(object):
         _list = []
         append = _list.append
         
-        command = GradingCommand.MakeMulticaseCommand(self.usingLag, self.version)
+        command = GradingCommand.MakeMulticaseCommand(self.usingLang, self.version)
         
         for i in xrange(1, self.caseCount+1):
             copyCommand = "%s%s%s%i%s" % (self.answerPath, self.problemName,
@@ -119,7 +119,7 @@ class GradingTools(object):
         _list = []
         append = _list.append
         
-        command = GradingCommand.MakeMulticaseCommand(self.usingLag, self.version)
+        command = GradingCommand.MakeMulticaseCommand(self.usingLang, self.version)
         
         copyCommand = "%s%s%s" % (self.answerPath, self.problemName, '.out')
         
