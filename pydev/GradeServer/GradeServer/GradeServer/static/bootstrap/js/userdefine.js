@@ -56,9 +56,9 @@ Dropzone.options.myDropzoneC = { // The camelized version of the ID of the form 
 	// The configuration we've talked about above
 	autoProcessQueue: false, // auto false
 	uploadMultiple: true,	// 
-	parallelUploads: 10,	// 
-	maxFiles: 10,			// 
-	maxFilesize: 0.5, 
+	parallelUploads: 5,	// 
+	maxFiles: 5,			// 
+	maxFilesize: 0.1, 
 	addRemoveLinks: true,	// Remove 
 	acceptedFiles: ".c, .h",		// 
 
@@ -84,9 +84,9 @@ Dropzone.options.myDropzoneCpp = { // The camelized version of the ID of the for
 	// The configuration we've talked about above
 		autoProcessQueue: false, // auto false
 		uploadMultiple: true,	// 
-		parallelUploads: 10,	// 
-		maxFiles: 10,			//
-		maxFilesize: 0.5, 
+		parallelUploads: 5,	// 
+		maxFiles: 5,			//
+		maxFilesize: 0.1, 
 		addRemoveLinks: true,	// Remove 
 		acceptedFiles: ".cpp, .h",		// 
 
@@ -113,9 +113,9 @@ Dropzone.options.myDropzoneJAVA = { // The camelized version of the ID of the fo
 	// The configuration we've talked about above
 		autoProcessQueue: false, // auto false
 		uploadMultiple: true,	// 
-		parallelUploads: 10,	// 
-		maxFiles: 10,			// 
-		maxFilesize: 0.5,
+		parallelUploads: 5,	// 
+		maxFiles: 5,			// 
+		maxFilesize: 0.1,
 		addRemoveLinks: true,	// Remove 
 		acceptedFiles: ".java, .class, .jar",		// 
 
@@ -141,9 +141,9 @@ Dropzone.options.myDropzonePYTHON = { // The camelized version of the ID of the 
 	// The configuration we've talked about above
 		autoProcessQueue: false, // auto false
 		uploadMultiple: true,	// 
-		parallelUploads: 10,	// 
-		maxFiles: 10,			// 
-		maxFilesize: 0.5,
+		parallelUploads: 5,	// 
+		maxFiles: 5,			// 
+		maxFilesize: 0.1,
 		addRemoveLinks: true,	// Remove 
 		acceptedFiles: ".py",		// 
 
