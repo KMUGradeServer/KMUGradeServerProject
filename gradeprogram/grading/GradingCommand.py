@@ -44,7 +44,7 @@ class GradingCommand(object):
         return runCommandList
     
     @staticmethod
-    def MakeMulticaseCommand(usingLag, version):
+    def MakeMulticaseCommand(usingLang, version):
         # make execution command
         if usingLang == ListResources.const.Lang_PYTHON:
             if version == ListResources.const.PYTHON_VERSION_TWO:

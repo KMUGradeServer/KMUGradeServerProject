@@ -37,9 +37,7 @@ class FileTools(object):
         
         readFile.close()
         
-        allFile.replace('\r\n', '\n')
-        
-        return allFile
+        return allFile.strip('\r\n ')
     
     @staticmethod
     def CopyFile(oldName, newName):
