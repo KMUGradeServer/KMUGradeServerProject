@@ -2,7 +2,7 @@
 import os
 import sys
 import logging
-from shutil import copyfile
+from shutil import copyfile, copy
 from gradingResource.enumResources import ENUMResources
 
 class FileTools(object):
@@ -49,6 +49,18 @@ class FileTools(object):
         except Exception as e:
             logging.debug(e)
             logging.info('file error : ' + oldName + ' copy error')
+            
+            print ENUMResources.const.SERVER_ERROR, 0, 0, 0
+            sys.exit()
+            
+    @staticmethod
+    def CopyAllFile(fileList, path):
+        try:           
+            for name in fileList:
+                copy(name, path)
+        except Exception as e:
+            logging.debug(e)
+            logging.info('file error : All file copy error')
             
             print ENUMResources.const.SERVER_ERROR, 0, 0, 0
             sys.exit()

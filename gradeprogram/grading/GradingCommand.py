@@ -6,13 +6,13 @@ class GradingCommand(object):
     def MakeCompileCommand(usingLang, filePath):
         # make compile command 
         if usingLang == ListResources.const.Lang_C:
-            return "%s %s%s" % ('gcc', filePath, '*.c -o main -lm -w 2>error.err')
+            return 'gcc *.c -o main -lm -w 2>error.err'
             
         elif usingLang == ListResources.const.Lang_CPP:
-            return "%s %s%s" % ('g++', filePath, '*.cpp -o main -lm -w 2>error.err')
+            return 'g++ *.cpp -o main -lm -w 2>error.err'
         
         elif usingLang == ListResources.const.Lang_JAVA:
-            return "%s %s%s" % ('javac -nowarn -d ./', filePath, '*.java 2>error.err')
+            return 'javac -nowarn -d ./ *.java 2>error.err'
         
     @staticmethod
     def MakeExecuteCommand(usingLang, runFileName, version):
