@@ -91,11 +91,15 @@ class ExecutionTools(object):
                 return ENUMResources.const.RUNTIME_ERROR, 0, 0 
                 
             elif os.WIFSIGNALED(status):
+                try:
+                    ptrace.kill(pid)
+                except Exception as e:
+                    pass
+                
                 return ENUMResources.const.TIME_OVER, res[0], usingMem
             
             else:
                 usingMem = self.GetUsingMemory(pid, usingMem)
-                
                 
                 ptrace.syscall(pid, 0)
                 

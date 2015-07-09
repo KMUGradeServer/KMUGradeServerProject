@@ -17,15 +17,15 @@ class CompileTools(object):
         self.runFileName = runFileName
         
     def CompileCode(self):
+        fileList = glob.glob(self.filePath + '*')
+        
+        if len(fileList) == 0:
+            print ENUMResources.const.SERVER_ERROR, 0, 0, 0
+            sys.exit()
+            
+        FileTools.CopyAllFile(fileList, os.getcwd())
+        
         if self.usingLang == ListResources.const.Lang_PYTHON:
-            copyCommand = "%s%s%s" % ('cp ', self.filePath, '*.py ./')
-            call(copyCommand, shell = True)
-            
-            if len(glob.glob('*.py')) == 0:
-                print 'compile python file copy'
-                print ENUMResources.const.SERVER_ERROR, 0, 0, 0
-                sys.exit()
-            
             return True
             
         # make compile command
