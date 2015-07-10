@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-import glob
 import string
 import ptrace
 import resource
@@ -9,6 +8,7 @@ from FileTools import FileTools
 from GradingCommand import GradingCommand
 from gradingResource.enumResources import ENUMResources
 from gradingResource.listResources import ListResources
+from gradingResource.fileNameNPathResources import FileNameNPathResources
 
 RUN_COMMAND_LIST = []
 
@@ -26,8 +26,9 @@ class ExecutionTools(object):
     def Execution(self):
         # copy input data
         if self.caseCount > 0:
-            copyCommand = "%s%s%s" % (self.answerPath, self.problemName, '_cases_total_inputs.txt')
-            FileTools.CopyFile(copyCommand, 'input.txt')
+            copyCommand = "%s%s%s" % (self.answerPath, self.problemName,
+                                      FileNameNPathResources.const.DefaultInputTotalCaseFileName)
+            FileTools.CopyFile(copyCommand, FileNameNPathResources.const.InputCaseFileName)
         
         # make execution command
         runCommandList = GradingCommand.MakeExecuteCommand(self.usingLang, self.runFileName, self.version)
@@ -42,9 +43,8 @@ class ExecutionTools(object):
         
         userTime = int(time * 1000)
         
-        coreList = glob.glob('core.[0-9]*')
-        
-        if len(coreList) > 0 and os.path.getsize(coreList[0]) > 0:
+        if os.path.exists(FileNameNPathResources.const.RunTimeErrorFileName) and\
+           os.path.getsize(FileNameNPathResources.const.RunTimeErrorFileName) > 0:
             result = ENUMResources.const.RUNTIME_ERROR
         
         elif userTime > self.limitTime:
@@ -58,7 +58,8 @@ class ExecutionTools(object):
     def RunProgram(self, runCommandList):
         os.nice(19)
         
-        reditectionSTDOUT = os.open('output.txt', os.O_RDWR|os.O_CREAT)
+        reditectionSTDOUT = os.open(FileNameNPathResources.const.OutputResultFileName,
+                                    os.O_RDWR|os.O_CREAT)
         os.dup2(reditectionSTDOUT,1)
         
         rlimTime = int(self.limitTime / 1000) + 1
@@ -69,7 +70,8 @@ class ExecutionTools(object):
         ptrace.traceme()
         
         if self.usingLang == ListResources.const.Lang_PYTHON or self.usingLang == ListResources.const.Lang_JAVA:
-            reditectionSTDERROR = os.open('core.1', os.O_RDWR|os.O_CREAT)
+            reditectionSTDERROR = os.open(FileNameNPathResources.const.RunTimeErrorFileName,
+                                          os.O_RDWR|os.O_CREAT)
             os.dup2(reditectionSTDERROR,2)
             
             os.execl(runCommandList[0], runCommandList[1], runCommandList[2])
@@ -104,7 +106,9 @@ class ExecutionTools(object):
                 ptrace.syscall(pid, 0)
                 
     def GetUsingMemory(self, pid, usingMem):
-        procFileOpenCommand = "%s%i%s" % ('/proc/', pid, '/status') 
+        procFileOpenCommand = "%s%i%s" % (FileNameNPathResources.const.ProcessDirName,
+                                          pid,
+                                          FileNameNPathResources.const.ProcessStatusFileName) 
         fileLines = FileTools.ReadFileLines(procFileOpenCommand)
         split = string.split
 

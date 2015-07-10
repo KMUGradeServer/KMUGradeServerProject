@@ -2,12 +2,12 @@
 import os
 import sys
 import glob
-import string
 from subprocess import call
 from FileTools import FileTools
 from GradingCommand import GradingCommand
 from gradingResource.listResources import ListResources
 from gradingResource.enumResources import ENUMResources
+from gradingResource.fileNameNPathResources import FileNameNPathResources
 
 class CompileTools(object):
     def __init__(self, filePath, usingLang, version, runFileName):
@@ -17,9 +17,9 @@ class CompileTools(object):
         self.runFileName = runFileName
         
     def CompileCode(self):
-        fileList = glob.glob(self.filePath + '*')
+        fileList = glob.glob(self.filePath + FileNameNPathResources.const.AllFile)
         
-        if len(fileList) == 0:
+        if len(fileList) is 0:
             print ENUMResources.const.SERVER_ERROR, 0, 0, 0
             sys.exit()
             
@@ -35,8 +35,7 @@ class CompileTools(object):
         call(command, shell = True)
         
         # check compile error
-        if os.path.getsize('error.err') > 0:
-            self.MakeErrorList()
+        if os.path.getsize(FileNameNPathResources.const.CompileErrorFileName) > 0:
             print ENUMResources.const.COMPILE_ERROR, 0, 0, 0
             sys.exit()
         
@@ -47,34 +46,3 @@ class CompileTools(object):
         else:
             print ENUMResources.const.SERVER_ERROR, 0, 0, 0
             sys.exit()
-        
-        
-    def MakeErrorList(self):
-        # if collect error message
-        count = 0
-        
-        try:
-            wf = open('errorlist.txt', 'w')
-        except Exception as e:
-            print 'make compile error list file open error'
-            print ENUMResources.const.COMPILE_ERROR, 0, 0, 0
-            sys.exit()
-        
-        lines = FileTools.ReadFileLines('error.err')
-        _list = []
-        append = _list.append
-        
-        split = string.split
-        
-        for line in lines:
-            if line.find('error:') != -1:   # if there is an 'error:'
-                part = split(line, '/')
-                append(part[-1])
-                count += 1
-                if count == 6:
-                    break
-        
-        wf.write(str(count)+'\n')
-        wf.writelines(_list)
-                
-        wf.close()
