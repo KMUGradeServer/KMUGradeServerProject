@@ -4,6 +4,7 @@ from FileTools import FileTools
 from subprocess import call
 from GradingCommand import GradingCommand
 from gradingResource.enumResources import ENUMResources
+from gradingResource.fileNameNPathResources import FileNameNPathResources
 
 class GradingTools(object):
     def __init__(self, parameter):
@@ -35,14 +36,17 @@ class GradingTools(object):
     def GradeSolutionSingle(self):
         # user output file each line compare with answer file each line.
         answerOpenCommand = "%s%s%s" % (self.answerPath, self.problemName,
-                                        '_cases_total_outputs.txt')
+                                        FileNameNPathResources.const.DefaultOutputTotalResultFileName)
         
-        stdLines = FileTools.ReadFileLines('output.txt')
+        stdLines = FileTools.ReadFileLines(FileNameNPathResources.const.OutputResultFileName)
         answerLines = FileTools.ReadFileLines(answerOpenCommand)
         
-        count = len(stdLines) - len(answerLines)
+        answerLineCount = len(answerLines)
+        stdLineCount = len(stdLines)
         
-        _min = len(stdLines) if count < 0 else len(answerLines)
+        count = stdLineCount - answerLineCount
+        
+        _min = stdLineCount if count < 0 else answerLineCount
         count = abs(count)
         
         strip = string.rstrip
@@ -54,23 +58,15 @@ class GradingTools(object):
             if stdLine != answerLine:   # if not same each line
                 count += 1
         
-        result = ENUMResources.const.SOLVED
-        score = 100
+        return self.GetSolutionScore(count, answerLineCount)
         
-        if count > 0:
-            result = ENUMResources.const.WRONG_ANSWER
-            score = int( ((len(answerLines) - count) * 100) / len(answerLines) )
-            
-        if score < 0:
-            return ENUMResources.const.WRONG_ANSWER, 0
-            
-        return result, score
+        #return result, score
         
     def GradeCheckerSingle(self):
-        copyCommand = "%s%s%s" % (self.answerPath, self.problemName, '.out')
-        FileTools.CopyFile(copyCommand, 'checker.out')
+        copyCommand = "%s%s%s" % (self.answerPath, self.problemName, '_checker')
+        FileTools.CopyFile(copyCommand, 'checker')
         
-        call('./checker.out 1>result.txt', shell = True)
+        call('./checker 1>result.txt', shell = True)
         
         score = self.GetScore('result.txt')
         
@@ -85,33 +81,47 @@ class GradingTools(object):
         _list = []
         append = _list.append
         
-        command = GradingCommand.MakeMulticaseCommand(self.usingLang, self.version)
+        answerOpenCommand = "%s%s%s" % (self.answerPath, self.problemName,
+                                        FileNameNPathResources.const.DefaultOutputTotalResultFileName)
         
-        for i in xrange(1, self.caseCount+1):
-            copyCommand = "%s%s%s%i%s" % (self.answerPath, self.problemName,
-                                          '_case', i, '_input.txt')
+        stdLines = FileTools.ReadFileLines(FileNameNPathResources.const.OutputResultFileName)
+        
+        strip = string.rstrip
+        
+        loopCount = len(stdLines)
+        caseCount = 1
+        i = 0
+        
+        while i < loopCount:
             answerOpenCommand = "%s%s%s%i%s" % (self.answerPath,
                                                 self.problemName,
-                                                '_case', i, '_output.txt')
-
-            FileTools.CopyFile(copyCommand, 'input.txt')
+                                                FileNameNPathResources.const.CaseFile,
+                                                caseCount,
+                                                FileNameNPathResources.const.OutputCaseName)
+            answers = FileTools.ReadFileLines(answerOpenCommand)
             
-            call(command, shell = True)
+            appendFlag = True
             
-            answer = FileTools.ReadFileAll(answerOpenCommand)
-            student = FileTools.ReadFileAll('output.txt')
+            for answer in answers:
+                stdLine = strip(stdLines[i], '\r\n ')
+                answerLine = strip(answer, '\r\n ')
+                
+                if stdLine != answerLine:
+                    count += 1
+                    if appendFlag:
+                        append(str(i) + ' ')
+                        appendFlag = False
+                    
+                i += 1
+                
+            if caseCount is self.caseCount:
+                count += loopCount - i
             
-            if answer != student:
-                count += 1
-                append(str(i) + ' ')
-           
-        if count == 0:
-            return ENUMResources.const.SOLVED, 100
+            caseCount += 1
+                
+        result, score = self.GetSolutionScore(count, loopCount)
         
-        else:
-            self.MakeCaseList(_list)
-            return ENUMResources.const.WRONG_ANSWER,\
-                   int( ((self.caseCount - count) * 100) / self.caseCount )
+        return result, score
         
     def GradeCheckerMulti(self):
         count = 0
@@ -121,18 +131,20 @@ class GradingTools(object):
         
         command = GradingCommand.MakeMulticaseCommand(self.usingLang, self.version)
         
-        copyCommand = "%s%s%s" % (self.answerPath, self.problemName, '.out')
+        copyCommand = "%s%s%s" % (self.answerPath, self.problemName, '_checker')
         
-        FileTools.CopyFile(copyCommand, 'checker.out')
+        FileTools.CopyFile(copyCommand, 'checker')
         
         for i in xrange(1, self.caseCount+1):
             copyCommand = "%s%s%s%i%s" % (self.answerPath, self.problemName,
-                                          '_case', i, '_input.txt input.txt')
-            FileTools.CopyFile(copyCommand, 'input.txt')
+                                          FileNameNPathResources.const.CaseFile, i,
+                                          FileNameNPathResources.const.InputCaseName)
+            FileTools.CopyFile(copyCommand,
+                               FileNameNPathResources.const.InputCaseFilename)
             
             call(command, shell = True)
             
-            call('./checker.out 1>result.txt', shell = True)
+            call('./checker 1>result.txt', shell = True)
             
             if self.GetScore('result.txt') != 100:
                 count += 1
@@ -152,6 +164,19 @@ class GradingTools(object):
         wf.writelines(_list)
                 
         wf.close()
+
+    def GetSolutionScore(self, count, lineCount):
+        result = ENUMResources.const.SOLVED
+        score = 100
+        
+        if count > 0:
+            result = ENUMResources.const.WRONG_ANSWER
+            score = int( ((len(answerLines) - count) * 100) / len(answerLines) )
+            
+        if score < 0:
+            return ENUMResources.const.WRONG_ANSWER, 0
+        
+        return result, score
             
     def GetScore(self, fileName):
         scores = FileTools.ReadFileLines('result.txt')
