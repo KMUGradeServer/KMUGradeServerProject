@@ -4,6 +4,7 @@ import glob
 import string
 import logging
 from gradingResource.listResources import ListResources
+from gradingResource.fileNameNPathResources import FileNameNPathResources
 
 class ParameterSetting(object):
     def __init__(self, args):
@@ -18,12 +19,15 @@ class ParameterSetting(object):
         self.version = args[9]
         self.problemName = args[10]
         
-        self.answerPath = "%s%s%s%s%s%s" % (self.problemPath, '/',
+        self.answerPath = "%s%s%s%s%s%s" % (self.problemPath,
+                                            FileNameNPathResources.const.FileSeparator,
                                             self.problemName, '_',
-                                            self.gradeMethod, '/')
+                                            self.gradeMethod,
+                                            FileNameNPathResources.const.FileSeparator)
         
         # make execution file name
-        self.filePath = "%s%s" % (self.filePath, '/')
+        self.filePath = "%s%s" % (self.filePath,
+                                  FileNameNPathResources.const.FileSeparator)
         self.runFileName = self.MakeRunFileName()
         
         os.chdir(self.saveDirectoryName)
@@ -33,18 +37,18 @@ class ParameterSetting(object):
     def MakeRunFileName(self):
         if self.usingLang == ListResources.const.Lang_C or\
            self.usingLang == ListResources.const.Lang_CPP:
-            return 'main'
+            return FileNameNPathResources.const.DefaultFileName
         
         fileExtention = ''
         if self.usingLang == ListResources.const.Lang_PYTHON:
             fileExtention = '.py'
             
-            
-        fileList = glob.glob(self.filePath + '*' +  fileExtention)
+        fileList = glob.glob(self.filePath + FileNameNPathResources.const.AllFile
+                             + fileExtention)
         
         if len(fileList) > 1:
-            return 'main' + fileExtention
+            return FileNameNPathResources.const.DefaultFileName + fileExtention
         
         split = string.split
-        name = split(fileList[0], '/')
-        return split(name[-1], '.')[0] + fileExtention
+        name = split(fileList[0], FileNameNPathResources.const.FileSeparator)
+        return split(name[-1], FileNameNPathResources.const.Dot)[0] + fileExtention
