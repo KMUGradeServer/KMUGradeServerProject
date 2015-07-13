@@ -51,6 +51,7 @@ class GradingTools(object):
         
         strip = string.rstrip
         
+        endRange = _min-1
         for i in xrange(_min):
             stdLine = strip(stdLines[i], '\r\n ')
             answerLine = strip(answerLines[i], '\r\n ')
@@ -76,21 +77,23 @@ class GradingTools(object):
             return ENUMResources.const.WRONG_ANSWER, score
     
     def GradeSolutionMulti(self):
-        count = 0
-        
         _list = []
         append = _list.append
         
         answerOpenCommand = "%s%s%s" % (self.answerPath, self.problemName,
                                         FileNameNPathResources.const.DefaultOutputTotalResultFileName)
         
+        answerLines = FileTools.ReadFileLines(answerOpenCommand)
         stdLines = FileTools.ReadFileLines(FileNameNPathResources.const.OutputResultFileName)
         
         strip = string.rstrip
         
+        totalCount = len(answerLines)
         loopCount = len(stdLines)
         caseCount = 1
+        count = abs(loopCount - totalCount)
         i = 0
+        appendFlag = True
         
         while i < loopCount:
             answerOpenCommand = "%s%s%s%i%s" % (self.answerPath,
@@ -99,8 +102,6 @@ class GradingTools(object):
                                                 caseCount,
                                                 FileNameNPathResources.const.OutputCaseName)
             answers = FileTools.ReadFileLines(answerOpenCommand)
-            
-            appendFlag = True
             
             for answer in answers:
                 stdLine = strip(stdLines[i], '\r\n ')
@@ -115,7 +116,7 @@ class GradingTools(object):
                 i += 1
                 
             if caseCount is self.caseCount:
-                count += loopCount - i + 1
+                count += loopCount - i
             
             caseCount += 1
                 
@@ -171,7 +172,7 @@ class GradingTools(object):
             result = ENUMResources.const.WRONG_ANSWER
             score = int( ((lineCount - count) * 100) / lineCount )
             
-        elif score < 0:
+        if score < 0:
             return ENUMResources.const.WRONG_ANSWER, 0
         
         return result, score
