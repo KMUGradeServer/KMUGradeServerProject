@@ -115,13 +115,11 @@ class GradingTools(object):
                 i += 1
                 
             if caseCount is self.caseCount:
-                count += loopCount - i
+                count += loopCount - i + 1
             
             caseCount += 1
                 
-        result, score = self.GetSolutionScore(count, loopCount)
-        
-        return result, score
+        return self.GetSolutionScore(count, loopCount)
         
     def GradeCheckerMulti(self):
         count = 0
@@ -171,9 +169,9 @@ class GradingTools(object):
         
         if count > 0:
             result = ENUMResources.const.WRONG_ANSWER
-            score = int( ((len(answerLines) - count) * 100) / len(answerLines) )
+            score = int( ((len(lineCount) - count) * 100) / len(lineCount) )
             
-        if score < 0:
+        elif score < 0:
             return ENUMResources.const.WRONG_ANSWER, 0
         
         return result, score
