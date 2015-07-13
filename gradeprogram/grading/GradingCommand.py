@@ -48,13 +48,13 @@ class GradingCommand(object):
         # make execution command
         if usingLang == ListResources.const.Lang_PYTHON:
             if version == ListResources.const.PYTHON_VERSION_TWO:
-                return "%s %s %s" % ('python', runFileName, '1>output.txt 2>core.1')
+                return "%s %s %s" % ('python', runFileName, '1>output.txt 2>core.err')
             elif version == ListResources.const.PYTHON_VERSION_THREE:
-                return "%s %s %s" % ('python3', runFileName, '1>output.txt 2>core.1')
+                return "%s %s %s" % ('python3', runFileName, '1>output.txt 2>core.err')
         
         elif usingLang == ListResources.const.Lang_C or\
              usingLang == ListResources.const.Lang_CPP:
             return './main 1>output.txt'
         
         elif usingLang == ListResources.const.Lang_JAVA:
-            return "%s %s %s" % ('java', runFileName, '1>output.txt 2>core.1')
+            return "%s %s %s" % ('java', runFileName, '1>output.txt 2>core.err')
