@@ -169,7 +169,7 @@ class GradingTools(object):
         
         if count > 0:
             result = ENUMResources.const.WRONG_ANSWER
-            score = int( ((len(lineCount) - count) * 100) / len(lineCount) )
+            score = int( ((lineCount - count) * 100) / lineCount )
             
         elif score < 0:
             return ENUMResources.const.WRONG_ANSWER, 0
