@@ -4,13 +4,21 @@ from celeryServer import app
 import os
 import time
 import DBUpdate
+from DBManager import db_session
 from subprocess import Popen, PIPE
 from billiard import current_process
 
 MAX_CONTAINER_COUNT = 4
 ROOT_CONTAINER_DIRECTORY = '/container'
 
-@app.task(name = 'task.Grade')
+class SqlAlchemyTask(app.Task):
+    abstract = True
+    
+    def after_return(self, status, retval, task_id, args, kwargs, einfo):
+        db_session.remove()
+    
+
+@app.task(name = 'task.Grade', base=SqlAlchemyTask)
 def Grade(filePath, problemPath, stdNum, problemNum, gradeMethod, caseCount,
           limitTime, limitMemory, usingLang, version, courseNum, submitCount,
           problemName):
@@ -72,7 +80,8 @@ def UpdateResult(messageLine, stdNum, problemNum, courseNum, submitCount):
     dataUpdate = DBUpdate.DBUpdate(stdNum, problemNum, courseNum, submitCount)
     messageParaList = messageLine.split()
     
-    result = dataUpdate.UpdateResutl(messageParaList)
+    result = dataUpdate.UpdateResutl(messageParaList, db_session)
     
     if not result:
-        dataUpdate.UpdateServerError(stdNum, problemNum, courseNum, submitCount)
+        dataUpdate.UpdateServerError(stdNum, problemNum, courseNum,
+                                     submitCount, db_session)

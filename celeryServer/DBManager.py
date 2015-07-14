@@ -11,15 +11,14 @@
 
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
 
 from DB import Base
 
 
 engine = create_engine("mysql+mysqlconnector://root:dkfrhflwma@192.168.0.8/GradeServer_DB",
-                      convert_unicode = True, pool_recycle = 3600)
+                      convert_unicode = True, pool_size=10)
 
-Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-db_session = Session()
+db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 
 Base.metadata.create_all(bind=engine)
