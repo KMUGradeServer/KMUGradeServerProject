@@ -9,7 +9,7 @@ class DBUpdate(object):
         self.problemNum = problemNum
         self.courseNum = courseNum
         self.submitCount = submitCount
-        self.self.db_session = db_session
+        self.db_session = db_session
         
     def UpdateResutl(self, messageParaList):
         try:
@@ -42,16 +42,16 @@ class DBUpdate(object):
                 
                 self.UpdateTableSubmissions(result, score, runTime, usingMem)
                 
-                self.self.db_session.commit()
+                self.db_session.commit()
                 return True
         except Exception as e:
-            self.self.db_session.rollback()
+            self.db_session.rollback()
             return False
             
     
     def UpdateTableSubmissions(self, result, score, runTime, usingMem):
         try:
-            self.self.db_session.query(Submissions).\
+            self.db_session.query(Submissions).\
                 filter_by(memberId = self.stdNum,
                           problemId = self.problemNum,
                           courseId = self.courseNum,
