@@ -1,15 +1,15 @@
-from DBManager import db_session
 from DB.submissions import Submissions
 from gradingResource.enumResources import ENUMResources
 from gradingResource.listResources import ListResources
 from DB.submittedRecordsOfProblems import SubmittedRecordsOfProblems
 
 class DBUpdate(object):
-    def __init__(self, stdNum, problemNum, courseNum, submitCount):
+    def __init__(self, stdNum, problemNum, courseNum, submitCount, db_session):
         self.stdNum = stdNum
         self.problemNum = problemNum
         self.courseNum = courseNum
         self.submitCount = submitCount
+        self.self.db_session = db_session
         
     def UpdateResutl(self, messageParaList):
         try:
@@ -42,16 +42,16 @@ class DBUpdate(object):
                 
                 self.UpdateTableSubmissions(result, score, runTime, usingMem)
                 
-                db_session.commit()
+                self.self.db_session.commit()
                 return True
         except Exception as e:
-            db_session.rollback()
+            self.self.db_session.rollback()
             return False
             
     
     def UpdateTableSubmissions(self, result, score, runTime, usingMem):
         try:
-            db_session.query(Submissions).\
+            self.self.db_session.query(Submissions).\
                 filter_by(memberId = self.stdNum,
                           problemId = self.problemNum,
                           courseId = self.courseNum,
@@ -66,7 +66,7 @@ class DBUpdate(object):
     
     def UpdateTable_SubmittedRecordsOfProblems_CompileError(self):
         try:
-            db_session.query(SubmittedRecordsOfProblems).\
+            self.db_session.query(SubmittedRecordsOfProblems).\
                 filter_by(problemId = self.problemNum,
                           courseId = self.courseNum).\
                           update(dict(sumOfSubmissionCount = SubmittedRecordsOfProblems.sumOfSubmissionCount + 1,
@@ -76,7 +76,7 @@ class DBUpdate(object):
             
     def UpdateTable_SubmittedRecordsOfProblems_Solved(self):
         try:
-            db_session.query(SubmittedRecordsOfProblems).\
+            self.db_session.query(SubmittedRecordsOfProblems).\
                     filter_by(problemId = self.problemNum,
                               courseId = self.courseNum).\
                     update(dict(sumOfSubmissionCount = SubmittedRecordsOfProblems.sumOfSubmissionCount + 1,
@@ -86,7 +86,7 @@ class DBUpdate(object):
             
     def UpdateTable_SubmittedRecordsOfProblems_WrongAnswer(self):
         try:
-            db_session.query(SubmittedRecordsOfProblems).\
+            self.db_session.query(SubmittedRecordsOfProblems).\
                     filter_by(problemId = self.problemNum,
                               courseId = self.courseNum).\
                     update(dict(sumOfSubmissionCount = SubmittedRecordsOfProblems.sumOfSubmissionCount + 1,
@@ -96,7 +96,7 @@ class DBUpdate(object):
             
     def UpdateTable_SubmittedRecordsOfProblems_TimbeOver(self):
         try:
-            db_session.query(SubmittedRecordsOfProblems).\
+            self.db_session.query(SubmittedRecordsOfProblems).\
                     filter_by(problemId = self.problemNum,
                               courseId = self.courseNum).\
                     update(dict(sumOfSubmissionCount = SubmittedRecordsOfProblems.sumOfSubmissionCount + 1,
@@ -106,7 +106,7 @@ class DBUpdate(object):
             
     def UpdateTable_SubmittedRecordsOfProblems_RunTimeError(self):
         try:
-            db_session.query(SubmittedRecordsOfProblems).\
+            self.db_session.query(SubmittedRecordsOfProblems).\
                     filter_by(problemId = self.problemNum,
                               courseId = self.courseNum).\
                     update(dict(sumOfSubmissionCount = SubmittedRecordsOfProblems.sumOfSubmissionCount + 1,
@@ -115,7 +115,7 @@ class DBUpdate(object):
             raise e
    
     @staticmethod
-    def UpdateServerError(stdNum, problemNum, courseNum, submitCount):
+    def UpdateServerError(stdNum, problemNum, courseNum, submitCount, db_session):
         try :
             db_session.query(Submissions).\
                 filter_by(memberId = stdNum,
