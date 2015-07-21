@@ -40,7 +40,7 @@ class OtherResources(object):
     const.JAVA_SOURCE_NAME = '%s.java'
     const.MISS_CLASS_NAME = 'missClassName.java'
     const.PYTHON_SOURCE_NAME = 'test.py'
-    const.JAVA_MAIN_CLASS = r'public\s+class\s+(\w+)'
+    const.JAVA_MAIN_CLASS = r'class\s+(\w+)'
     const.LINUX_NEW_LINE = '\r\n'
     const.WINDOWS_NEW_LINE = '\n'
     const.SUBMISSION_COUNT = 'submissionCount'
