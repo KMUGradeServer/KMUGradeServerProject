@@ -16,4 +16,5 @@ And used followings<br>
 [docker](http://www.docker.com) for handling each request of judging,<br>
 [mariadb](https://mariadb.org/), [sqlalchemy](http://www.sqlalchemy.org/) for database access.
 
-We are pleasure you to contribute for this project anytime!
+This project is open but it turns to private project so updates are restricted.
+
