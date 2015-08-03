@@ -5,7 +5,6 @@ import string
 import ptrace
 import resource
 from FileTools import FileTools
-from GradingCommand import GradingCommand
 from gradingResource.enumResources import ENUMResources
 from gradingResource.listResources import ListResources
 from gradingResource.fileNameNPathResources import FileNameNPathResources
@@ -13,7 +12,7 @@ from gradingResource.fileNameNPathResources import FileNameNPathResources
 RUN_COMMAND_LIST = []
 
 class ExecutionTools(object):
-    def __init__(self, parameter):
+    def __init__(self, parameter, command):
         self.usingLang = parameter.usingLang
         self.limitTime = parameter.limitTime
         self.limitMemory = parameter.limitMemory
@@ -22,6 +21,7 @@ class ExecutionTools(object):
         self.runFileName = parameter.runFileName
         self.problemName = parameter.problemName
         self.caseCount = parameter.caseCount
+        self.command = command
         
     def Execution(self):
         # copy input data
@@ -31,7 +31,7 @@ class ExecutionTools(object):
             FileTools.CopyFile(copyCommand, FileNameNPathResources.const.InputCaseFileName)
         
         # make execution command
-        runCommandList = GradingCommand.MakeExecuteCommand(self.usingLang, self.runFileName, self.version)
+        runCommandList = self.command.ExecuteCommand()
                 
         pid = os.fork()
          
@@ -48,10 +48,14 @@ class ExecutionTools(object):
             result = ENUMResources.const.RUNTIME_ERROR
         
         elif userTime > self.limitTime:
-            result = ENUMResources.const.TIME_OVER 
+            result = ENUMResources.const.TIME_OVER
+        
+        elif (usingMem >> 10) > self.limitMemory:
+             result = ENUMResources.const.MEMORY_OVERFLOW
         
         if not result:
-            self.ResultError(result, userTime, usingMem)
+            print ENUMResources.const.SERVER_ERROR, 0, 0, 0
+            sys.exit()
         
         return result, userTime, usingMem
     
@@ -67,17 +71,15 @@ class ExecutionTools(object):
         resource.setrlimit(resource.RLIMIT_CORE, (1024,1024))
         resource.setrlimit(resource.RLIMIT_CPU, (rlimTime,rlimTime))
         
-        ptrace.traceme()
-        
-        if self.usingLang == ListResources.const.Lang_PYTHON or self.usingLang == ListResources.const.Lang_JAVA:
+        if self.usingLang != ListResources.const.Lang_C and\
+           self.usingLang != ListResources.const.Lang_CPP:
             reditectionSTDERROR = os.open(FileNameNPathResources.const.RunTimeErrorFileName,
                                           os.O_RDWR|os.O_CREAT)
             os.dup2(reditectionSTDERROR,2)
+        
+        ptrace.traceme()
             
-            os.execl(runCommandList[0], runCommandList[1], runCommandList[2])
-            
-        else:
-            os.execl(runCommandList[0], runCommandList[1])
+        os.execl(runCommandList[0], runCommandList[1], runCommandList[2])
             
     def WatchRunProgram(self, pid):
         usingMem = 0
@@ -123,7 +125,3 @@ class ExecutionTools(object):
             usingMem = temp
         
         return usingMem
-    
-    def ResultError(self, result, userTime, usingMem):
-        print result, 0, userTime, usingMem
-        sys.exit()

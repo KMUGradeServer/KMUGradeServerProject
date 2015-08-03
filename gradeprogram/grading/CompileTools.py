@@ -4,17 +4,16 @@ import sys
 import glob
 from subprocess import call
 from FileTools import FileTools
-from GradingCommand import GradingCommand
-from gradingResource.listResources import ListResources
 from gradingResource.enumResources import ENUMResources
 from gradingResource.fileNameNPathResources import FileNameNPathResources
 
 class CompileTools(object):
-    def __init__(self, filePath, usingLang, version, runFileName):
-        self.filePath = filePath
-        self.usingLang = usingLang
-        self.version = version
-        self.runFileName = runFileName
+    def __init__(self, parameter, command):
+        self.filePath = parameter.filePath
+        self.usingLang = parameter.usingLang
+        self.version = parameter.version
+        self.runFileName = parameter.runFileName
+        self.command = command
         
     def CompileCode(self):
         fileList = glob.glob(self.filePath + FileNameNPathResources.const.AllFile)
@@ -24,12 +23,12 @@ class CompileTools(object):
             sys.exit()
             
         FileTools.CopyAllFile(fileList, os.getcwd())
-        
-        if self.usingLang == ListResources.const.Lang_PYTHON:
-            return True
             
         # make compile command
-        command = GradingCommand.MakeCompileCommand(self.usingLang, self.filePath)
+        command = self.command.CompileCommand()
+        
+        if command is 'py':
+            return True
         
         # code compile
         call(command, shell = True)

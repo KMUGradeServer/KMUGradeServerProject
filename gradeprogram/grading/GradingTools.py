@@ -2,12 +2,11 @@
 import string
 from FileTools import FileTools
 from subprocess import call
-from GradingCommand import GradingCommand
 from gradingResource.enumResources import ENUMResources
 from gradingResource.fileNameNPathResources import FileNameNPathResources
 
 class GradingTools(object):
-    def __init__(self, parameter):
+    def __init__(self, parameter, command):
         self.gradeMethod = parameter.gradeMethod 
         self.caseCount = parameter.caseCount
         self.usingLang = parameter.usingLang
@@ -15,6 +14,7 @@ class GradingTools(object):
         self.answerPath = parameter.answerPath
         self.problemName = parameter.problemName
         self.filePath = parameter.filePath
+        self.command = command
         
     def Grade(self):
         if self.gradeMethod == ENUMResources.const.SOLUTION:   # solution
@@ -51,7 +51,6 @@ class GradingTools(object):
         
         strip = string.rstrip
         
-        endRange = _min-1
         for i in xrange(_min):
             stdLine = strip(stdLines[i], '\r\n ')
             answerLine = strip(answerLines[i], '\r\n ')
@@ -60,8 +59,6 @@ class GradingTools(object):
                 count += 1
         
         return self.GetSolutionScore(count, answerLineCount)
-        
-        #return result, score
         
     def GradeCheckerSingle(self):
         copyCommand = "%s%s%s" % (self.answerPath, self.problemName, '_checker')
@@ -127,8 +124,6 @@ class GradingTools(object):
         
         _list = []
         append = _list.append
-        
-        command = GradingCommand.MakeMulticaseCommand(self.usingLang, self.version)
         
         copyCommand = "%s%s%s" % (self.answerPath, self.problemName, '_checker')
         
