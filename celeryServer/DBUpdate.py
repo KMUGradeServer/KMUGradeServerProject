@@ -4,14 +4,13 @@ from gradingResource.listResources import ListResources
 from DB.submittedRecordsOfProblems import SubmittedRecordsOfProblems
 
 class DBUpdate(object):
-    def __init__(self, stdNum, problemNum, courseNum, submitCount, db_session):
+    def __init__(self, stdNum, problemNum, courseNum, submitCount):
         self.stdNum = stdNum
         self.problemNum = problemNum
         self.courseNum = courseNum
         self.submitCount = submitCount
-        self.db_session = db_session
         
-    def UpdateResutl(self, messageParaList):
+    def UpdateResutl(self, messageParaList, db_session):
         try:
             if len(messageParaList) != 4:
                 return False
@@ -23,35 +22,35 @@ class DBUpdate(object):
                 usingMem = messageParaList[3]
             
                 if result == ENUMResources.const.WRONG_ANSWER:
-                    self.UpdateTable_SubmittedRecordsOfProblems_WrongAnswer()
+                    self.UpdateTable_SubmittedRecordsOfProblems_WrongAnswer(db_session)
                 
                 elif result == ENUMResources.const.TIME_OVER:
-                    self.UpdateTable_SubmittedRecordsOfProblems_TimbeOver()
+                    self.UpdateTable_SubmittedRecordsOfProblems_TimbeOver(db_session)
                 
                 elif result == ENUMResources.const.SOLVED:
-                    self.UpdateTable_SubmittedRecordsOfProblems_Solved()
+                    self.UpdateTable_SubmittedRecordsOfProblems_Solved(db_session)
                     
                 elif result == ENUMResources.const.RUNTIME_ERROR:
-                    self.UpdateTable_SubmittedRecordsOfProblems_RunTimeError()
+                    self.UpdateTable_SubmittedRecordsOfProblems_RunTimeError(db_session)
                     
                 elif result == ENUMResources.const.COMPILE_ERROR:
-                    self.UpdateTable_SubmittedRecordsOfProblems_CompileError()
+                    self.UpdateTable_SubmittedRecordsOfProblems_CompileError(db_session)
                     
                 else:
                     return False
                 
-                self.UpdateTableSubmissions(result, score, runTime, usingMem)
+                self.UpdateTableSubmissions(result, score, runTime, usingMem, db_session)
                 
-                self.db_session.commit()
+                db_session.commit()
                 return True
         except Exception as e:
-            self.db_session.rollback()
+            db_session.rollback()
             return False
             
     
     def UpdateTableSubmissions(self, result, score, runTime, usingMem):
         try:
-            self.db_session.query(Submissions).\
+            db_session.query(Submissions).\
                 filter_by(memberId = self.stdNum,
                           problemId = self.problemNum,
                           courseId = self.courseNum,
@@ -64,9 +63,9 @@ class DBUpdate(object):
         except Exception as e:
             raise e
     
-    def UpdateTable_SubmittedRecordsOfProblems_CompileError(self):
+    def UpdateTable_SubmittedRecordsOfProblems_CompileError(self, db_session):
         try:
-            self.db_session.query(SubmittedRecordsOfProblems).\
+            db_session.query(SubmittedRecordsOfProblems).\
                 filter_by(problemId = self.problemNum,
                           courseId = self.courseNum).\
                           update(dict(sumOfSubmissionCount = SubmittedRecordsOfProblems.sumOfSubmissionCount + 1,
@@ -74,9 +73,9 @@ class DBUpdate(object):
         except Exception as e:
             raise e
             
-    def UpdateTable_SubmittedRecordsOfProblems_Solved(self):
+    def UpdateTable_SubmittedRecordsOfProblems_Solved(self, db_session):
         try:
-            self.db_session.query(SubmittedRecordsOfProblems).\
+            db_session.query(SubmittedRecordsOfProblems).\
                     filter_by(problemId = self.problemNum,
                               courseId = self.courseNum).\
                     update(dict(sumOfSubmissionCount = SubmittedRecordsOfProblems.sumOfSubmissionCount + 1,
@@ -84,9 +83,9 @@ class DBUpdate(object):
         except Exception as e:
             raise e
             
-    def UpdateTable_SubmittedRecordsOfProblems_WrongAnswer(self):
+    def UpdateTable_SubmittedRecordsOfProblems_WrongAnswer(self, db_session):
         try:
-            self.db_session.query(SubmittedRecordsOfProblems).\
+            db_session.query(SubmittedRecordsOfProblems).\
                     filter_by(problemId = self.problemNum,
                               courseId = self.courseNum).\
                     update(dict(sumOfSubmissionCount = SubmittedRecordsOfProblems.sumOfSubmissionCount + 1,
@@ -94,9 +93,9 @@ class DBUpdate(object):
         except Exception as e:
             raise e
             
-    def UpdateTable_SubmittedRecordsOfProblems_TimbeOver(self):
+    def UpdateTable_SubmittedRecordsOfProblems_TimbeOver(self, db_session):
         try:
-            self.db_session.query(SubmittedRecordsOfProblems).\
+            db_session.query(SubmittedRecordsOfProblems).\
                     filter_by(problemId = self.problemNum,
                               courseId = self.courseNum).\
                     update(dict(sumOfSubmissionCount = SubmittedRecordsOfProblems.sumOfSubmissionCount + 1,
@@ -104,9 +103,9 @@ class DBUpdate(object):
         except Exception as e:
             raise e
             
-    def UpdateTable_SubmittedRecordsOfProblems_RunTimeError(self):
+    def UpdateTable_SubmittedRecordsOfProblems_RunTimeError(self, db_session):
         try:
-            self.db_session.query(SubmittedRecordsOfProblems).\
+            db_session.query(SubmittedRecordsOfProblems).\
                     filter_by(problemId = self.problemNum,
                               courseId = self.courseNum).\
                     update(dict(sumOfSubmissionCount = SubmittedRecordsOfProblems.sumOfSubmissionCount + 1,
