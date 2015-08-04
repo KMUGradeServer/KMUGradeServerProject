@@ -48,7 +48,7 @@ class DBUpdate(object):
             return False
             
     
-    def UpdateTableSubmissions(self, result, score, runTime, usingMem):
+    def UpdateTableSubmissions(self, result, score, runTime, usingMem, db_session):
         try:
             db_session.query(Submissions).\
                 filter_by(memberId = self.stdNum,

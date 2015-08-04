@@ -6,7 +6,7 @@ class PYTHON3_Command(Language):
         Language.__init__(self, runFileName)
         
     def CompileCommand(self):
-        return 'py'
+        return False
         
     def ExecuteCommand(self):
         runCommandList = []

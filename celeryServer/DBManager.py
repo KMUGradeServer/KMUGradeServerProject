@@ -19,6 +19,7 @@ from DB import Base
 engine = create_engine("mysql+mysqlconnector://root:dkfrhflwma@192.168.0.8/GradeServer_DB",
                       convert_unicode = True, pool_size=10)
 
-global db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+global db_session
+db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
 
 Base.metadata.create_all(bind=engine)

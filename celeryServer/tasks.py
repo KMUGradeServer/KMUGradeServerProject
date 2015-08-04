@@ -1,11 +1,10 @@
 from __future__ import absolute_import
 from celeryServer import app
 
-import os
 import time
 import DBUpdate
 from DBManager import db_session
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, call
 from billiard import current_process
 
 MAX_CONTAINER_COUNT = 4
@@ -36,7 +35,7 @@ def Grade(filePath, problemPath, stdNum, problemNum, gradeMethod, caseCount,
                                    'python /gradeprogram/rungrade.py ')
 
     
-    os.system('sudo mkdir ' + sharingDirName)
+    call('sudo mkdir ' + sharingDirName, shell = True)
     print 'program start'
     
     message = Popen(containerCommand + argsList, shell=True, stdout=PIPE)
@@ -51,7 +50,7 @@ def Grade(filePath, problemPath, stdNum, problemNum, gradeMethod, caseCount,
     else:
         UpdateResult('SERVER_ERROR', stdNum, problemNum, courseNum, submitCount)
     
-    os.system('sudo rm -rf ' + sharingDirName)
+    call('sudo rm -rf ' + sharingDirName, shell = True)
     
 @app.task(name = 'task.ServerOn')
 def OnServer():
@@ -63,9 +62,9 @@ def OnServer():
         
         runProgramInContainer = '%s%i %s' % ('sudo docker exec grade_container',
                                             containerNum, 'python -B /gradeprogram/*')
-        os.system(containerCreadeCommand)
-        os.system('sudo docker start grade_container' + containerNum)
-        os.system(runProgramInContainer)
+        call(containerCreadeCommand, shell = True)
+        call('sudo docker start grade_container' + containerNum, shell = True)
+        call(runProgramInContainer, shell = True)
     
 @app.task(name = 'task.ServerOff')
 def OffServer():
@@ -73,8 +72,8 @@ def OffServer():
     
     for i in range(MAX_CONTAINER_COUNT):
         number = str(i+1)
-        os.system('sudo docker stop grade_container' + number)
-        os.system('sudo docker rm grade_container' + number)
+        call('sudo docker stop grade_container' + number, shell = True)
+        call('sudo docker rm grade_container' + number, shell = True)
         
 def UpdateResult(messageLine, stdNum, problemNum, courseNum, submitCount):        
     dataUpdate = DBUpdate.DBUpdate(stdNum, problemNum, courseNum, submitCount)
