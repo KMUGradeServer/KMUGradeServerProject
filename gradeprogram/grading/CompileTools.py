@@ -27,7 +27,7 @@ class CompileTools(object):
         # make compile command
         command = self.command.CompileCommand()
         
-        if command is 'py':
+        if not command:
             return True
         
         # code compile
