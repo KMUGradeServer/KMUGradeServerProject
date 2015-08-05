@@ -1,1 +1,1 @@
-__all__ = ['CompileTools', 'ExecutionTools', 'FileTools', 'GradingCommand', 'GradingTools', 'InterfaceGrade', 'ParameterSetting']
+__all__ = ['CompileTools', 'ExecutionTools', 'FileTools', 'GradingTools', 'InterfaceGrade', 'ParameterSetting']

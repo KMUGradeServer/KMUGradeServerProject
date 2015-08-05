@@ -9,8 +9,6 @@ class GradingTools(object):
     def __init__(self, parameter, command):
         self.gradeMethod = parameter.gradeMethod 
         self.caseCount = parameter.caseCount
-        self.usingLang = parameter.usingLang
-        self.version = parameter.version
         self.answerPath = parameter.answerPath
         self.problemName = parameter.problemName
         self.filePath = parameter.filePath
