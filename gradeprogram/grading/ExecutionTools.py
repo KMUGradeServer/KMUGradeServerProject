@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+import signal
 import string
 import ptrace
 import resource
 from FileTools import FileTools
 from gradingResource.enumResources import ENUMResources
-from gradingResource.listResources import ListResources
 from gradingResource.fileNameNPathResources import FileNameNPathResources
 
 RUN_COMMAND_LIST = []
@@ -42,13 +42,15 @@ class ExecutionTools(object):
         
         userTime = int(time * 1000)
         
-        if userTime > self.limitTime:
-            result = ENUMResources.const.TIME_OVER
+        if result == 'Grading':
         
-        elif (usingMem >> 10) > self.limitMemory:
-             result = ENUMResources.const.MEMORY_OVERFLOW
+            if userTime > self.limitTime:
+                result = ENUMResources.const.TIME_OVER
         
-        if not result:
+            elif (usingMem >> 10) > self.limitMemory:
+                 result = ENUMResources.const.MEMORY_OVERFLOW
+        
+        elif not result:
             print ENUMResources.const.SERVER_ERROR, 0, 0, 0
             sys.exit()
         
@@ -61,9 +63,10 @@ class ExecutionTools(object):
                                     os.O_RDWR|os.O_CREAT)
         os.dup2(reditectionSTDOUT,1)
         
+        soft, hard = resource.getrlimit(resource.RLIMIT_CPU)
         rlimTime = int(self.limitTime / 1000) + 1
         
-        resource.setrlimit(resource.RLIMIT_CPU, (rlimTime,rlimTime))
+        resource.setrlimit(resource.RLIMIT_CPU, (rlimTime,hard))
         
         ptrace.traceme()
             
@@ -74,22 +77,26 @@ class ExecutionTools(object):
         
         while True:
             wpid, status, res = os.wait4(pid,0)
+            signal.signal(signal.SIGXCPU, self.sigHandler)
     
             if os.WIFEXITED(status):
                 return 'Grading', res[0], usingMem
             
             exitCode = os.WEXITSTATUS(status)
             
-            if exitCode != 5 and exitCode != 0 and exitCode != 17:
+            if  exitCode is 24:
+                return ENUMResources.const.TIME_OVER, res[0], usingMem
+            
+            elif exitCode is not 5 and exitCode is not 0 and exitCode is not 17:
                 return ENUMResources.const.RUNTIME_ERROR, 0, 0 
-                
+            
             elif os.WIFSIGNALED(status):
                 try:
                     ptrace.kill(pid)
                 except Exception as e:
                     pass
                 
-                return ENUMResources.const.TIME_OVER, res[0], usingMem
+                return ENUMResources.const.RUNTIME_ERROR, 0, 0
             
             else:
                 usingMem = self.GetUsingMemory(pid, usingMem)
@@ -114,3 +121,6 @@ class ExecutionTools(object):
             usingMem = temp
         
         return usingMem
+    
+    def sigHandler(self, sig, f):
+        pass
