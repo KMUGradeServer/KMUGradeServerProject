@@ -17,7 +17,6 @@ class ExecutionTools(object):
         self.limitTime = parameter.limitTime
         self.limitMemory = parameter.limitMemory
         self.answerPath = parameter.answerPath
-        self.version = parameter.version
         self.runFileName = parameter.runFileName
         self.problemName = parameter.problemName
         self.caseCount = parameter.caseCount
@@ -43,11 +42,7 @@ class ExecutionTools(object):
         
         userTime = int(time * 1000)
         
-        if os.path.exists(FileNameNPathResources.const.RunTimeErrorFileName) and\
-           os.path.getsize(FileNameNPathResources.const.RunTimeErrorFileName) > 0:
-            result = ENUMResources.const.RUNTIME_ERROR
-        
-        elif userTime > self.limitTime:
+        if userTime > self.limitTime:
             result = ENUMResources.const.TIME_OVER
         
         elif (usingMem >> 10) > self.limitMemory:
@@ -68,14 +63,7 @@ class ExecutionTools(object):
         
         rlimTime = int(self.limitTime / 1000) + 1
         
-        resource.setrlimit(resource.RLIMIT_CORE, (1024,1024))
         resource.setrlimit(resource.RLIMIT_CPU, (rlimTime,rlimTime))
-        
-        if self.usingLang != ListResources.const.Lang_C and\
-           self.usingLang != ListResources.const.Lang_CPP:
-            reditectionSTDERROR = os.open(FileNameNPathResources.const.RunTimeErrorFileName,
-                                          os.O_RDWR|os.O_CREAT)
-            os.dup2(reditectionSTDERROR,2)
         
         ptrace.traceme()
             
@@ -91,6 +79,7 @@ class ExecutionTools(object):
                 return 'Grading', res[0], usingMem
             
             exitCode = os.WEXITSTATUS(status)
+            
             if exitCode != 5 and exitCode != 0 and exitCode != 17:
                 return ENUMResources.const.RUNTIME_ERROR, 0, 0 
                 
@@ -114,8 +103,8 @@ class ExecutionTools(object):
         fileLines = FileTools.ReadFileLines(procFileOpenCommand)
         split = string.split
 
-        for i in xrange(15,20):
-            index = fileLines[i].find('VmRSS')
+        for i in xrange(10,15):
+            index = fileLines[i].find('VmPeak')
             if index != -1:
                 words = split(fileLines[i])
                 temp = int(words[index+1])

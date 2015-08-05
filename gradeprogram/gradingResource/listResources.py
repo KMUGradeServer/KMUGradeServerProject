@@ -16,5 +16,5 @@ class ListResources(object):
     const.PYTHON_VERSION_THREE = '3.4'
     
     const.GRADERESULT_List = ['grading status', 'NEVER_SUBMITTED', 'JUDGING',
-                              'SOLVED', 'TIME_OVER', 'WRONG_ANSWER', 'COMPILE_ERROR',
-                              'RUNTIME_ERROR', 'SERVER_ERROR']
+                              'SOLVED', 'TIME_OVER', 'MEMORY_OVERFLOW', 'WRONG_ANSWER',
+                              'COMPILE_ERROR', 'RUNTIME_ERROR', 'SERVER_ERROR']

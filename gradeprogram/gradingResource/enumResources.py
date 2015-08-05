@@ -12,6 +12,7 @@ class ENUMResources(object):
     const.JUDGING = 'JUDGING'
     const.SOLVED = 'SOLVED'
     const.TIME_OVER = 'TIME_OVER'
+    const.MEMORY_OVERFLOW = 'MEMORY_OVERFLOW'
     const.WRONG_ANSWER = 'WRONG_ANSWER'
     const.COMPILE_ERROR = 'COMPILE_ERROR'
     const.RUNTIME_ERROR = 'RUNTIME_ERROR'

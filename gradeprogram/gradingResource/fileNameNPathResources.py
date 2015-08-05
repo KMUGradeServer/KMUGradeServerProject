@@ -14,7 +14,6 @@ class FileNameNPathResources(object):
     const.AllFile = '*'
     
     const.CompileErrorFileName = 'error.err'
-    const.RunTimeErrorFileName = 'core.err'
     
     const.DefaultInputTotalCaseFileName = '_cases_total_inputs.txt'
     const.DefaultOutputTotalResultFileName = '_cases_total_outputs.txt'

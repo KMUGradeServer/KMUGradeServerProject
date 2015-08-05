@@ -10,8 +10,6 @@ from gradingResource.fileNameNPathResources import FileNameNPathResources
 class CompileTools(object):
     def __init__(self, parameter, command):
         self.filePath = parameter.filePath
-        self.usingLang = parameter.usingLang
-        self.version = parameter.version
         self.runFileName = parameter.runFileName
         self.command = command
         
