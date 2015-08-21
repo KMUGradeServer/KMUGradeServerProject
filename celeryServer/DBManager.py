@@ -13,7 +13,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
-from DB import Base
+from model import Base
 
 
 engine = create_engine("mysql+mysqlconnector://root:dkfrhflwma@192.168.0.8/GradeServer_DB",
