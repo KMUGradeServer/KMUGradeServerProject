@@ -28,29 +28,29 @@ class InterfaceGrade(object):
             else:
                 self.command = PYTHON3_Command.PYTHON3_Command(self.parameter.runFileName)
         
-    def Compile(self):
+    def compile(self):
         logging.debug(self.parameter.saveDirectoryName + ' compile start')
         _compile = CompileTools.CompileTools(self.parameter, self.command)
-        success = _compile.CompileCode()
+        success = _compile.compileCode()
         
         logging.debug(self.parameter.saveDirectoryName + ' compile end')
         
         return success
         
-    def Evaluation(self):
+    def evaluation(self):
         score = 0
         logging.debug(self.parameter.saveDirectoryName + ' execution start')
         
         execution = ExecutionTools.ExecutionTools(self.parameter, self.command)
             
-        success, runTime, usingMem = execution.Execution()
+        success, runTime, usingMem = execution.execution()
         logging.debug(self.parameter.saveDirectoryName + ' execution end')
         
         if success == 'Grading':
             logging.debug(self.parameter.saveDirectoryName + ' grade start')
             evaluation = GradingTools.GradingTools(self.parameter, self.command)
              
-            success, score = evaluation.Grade()
+            success, score = evaluation.grade()
             logging.debug(self.parameter.saveDirectoryName + ' grade end')
             
         print success, score, runTime, usingMem

@@ -4,6 +4,7 @@ import sys
 import logging
 from grading import InterfaceGrade
 from gradingResource.enumResources import ENUMResources
+from gradingResource.fileNameNPathResources import FileNameNPathResources
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
@@ -16,14 +17,13 @@ if __name__ == '__main__':
         sys.exit()
     
     logging.debug(args[3] + ' grading start')
-    os.chdir('tempdir')
+    os.chdir(FileNameNPathResources.const.TempDirectory)
 
     grade = InterfaceGrade.InterfaceGrade(args)
-    result = grade.Compile()
+    result = grade.compile()
     
     if result == ENUMResources.const.COMPILE_ERROR:
-        # update DBManager 'compile error'
         print result, 0, 0, 0
         sys.exit()
     
-    result, score, runTime, usingMem = grade.Evaluation()
+    result, score, runTime, usingMem = grade.evaluation()

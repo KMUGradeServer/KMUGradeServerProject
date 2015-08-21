@@ -22,12 +22,12 @@ class ExecutionTools(object):
         self.caseCount = parameter.caseCount
         self.command = command
         
-    def Execution(self):
+    def execution(self):
         # copy input data
         if self.caseCount > 0:
             copyCommand = "%s%s%s" % (self.answerPath, self.problemName,
                                       FileNameNPathResources.const.DefaultInputTotalCaseFileName)
-            FileTools.CopyFile(copyCommand, FileNameNPathResources.const.InputCaseFileName)
+            FileTools.copyFile(copyCommand, FileNameNPathResources.const.InputCaseFileName)
         
         # make execution command
         runCommandList = self.command.ExecuteCommand()
@@ -35,10 +35,10 @@ class ExecutionTools(object):
         pid = os.fork()
          
         if pid == 0:
-            self.RunProgram(runCommandList)
+            self.runProgram(runCommandList)
         
         else:
-            result, time, usingMem = self.WatchRunProgram(pid)
+            result, time, usingMem = self.watchRunProgram(pid)
         
         userTime = int(time * 1000)
         
@@ -56,7 +56,7 @@ class ExecutionTools(object):
         
         return result, userTime, usingMem
     
-    def RunProgram(self, runCommandList):
+    def runProgram(self, runCommandList):
         os.nice(19)
         
         reditectionSTDOUT = os.open(FileNameNPathResources.const.OutputResultFileName,
@@ -72,7 +72,7 @@ class ExecutionTools(object):
             
         os.execl(runCommandList[0], runCommandList[1], runCommandList[2])
             
-    def WatchRunProgram(self, pid):
+    def watchRunProgram(self, pid):
         usingMem = 0
         
         while True:
@@ -99,15 +99,15 @@ class ExecutionTools(object):
                 return ENUMResources.const.RUNTIME_ERROR, 0, 0
             
             else:
-                usingMem = self.GetUsingMemory(pid, usingMem)
+                usingMem = self.getUsingMemory(pid, usingMem)
                 
                 ptrace.syscall(pid, 0)
                 
-    def GetUsingMemory(self, pid, usingMem):
+    def getUsingMemory(self, pid, usingMem):
         procFileOpenCommand = "%s%i%s" % (FileNameNPathResources.const.ProcessDirName,
                                           pid,
                                           FileNameNPathResources.const.ProcessStatusFileName) 
-        fileLines = FileTools.ReadFileLines(procFileOpenCommand)
+        fileLines = FileTools.readFileLines(procFileOpenCommand)
         split = string.split
 
         for i in xrange(10,15):

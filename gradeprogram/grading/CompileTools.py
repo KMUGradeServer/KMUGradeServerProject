@@ -13,14 +13,14 @@ class CompileTools(object):
         self.runFileName = parameter.runFileName
         self.command = command
         
-    def CompileCode(self):
+    def compileCode(self):
         fileList = glob.glob(self.filePath + FileNameNPathResources.const.AllFile)
         
         if len(fileList) is 0:
             print ENUMResources.const.SERVER_ERROR, 0, 0, 0
             sys.exit()
             
-        FileTools.CopyAllFile(fileList, os.getcwd())
+        FileTools.copyAllFile(fileList, os.getcwd())
             
         # make compile command
         command = self.command.CompileCommand()
