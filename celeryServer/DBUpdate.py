@@ -1,7 +1,7 @@
-from DB.submissions import Submissions
-from gradingResource.enumResources import ENUMResources
-from gradingResource.listResources import ListResources
-from DB.submittedRecordsOfProblems import SubmittedRecordsOfProblems
+from model.submissions import Submissions
+from resource.enumResources import ENUMResources
+from resource.listResources import ListResources
+from model.submittedRecordsOfProblems import SubmittedRecordsOfProblems
 
 class DBUpdate(object):
     def __init__(self, stdNum, problemNum, courseNum, submitCount):
@@ -10,7 +10,10 @@ class DBUpdate(object):
         self.courseNum = courseNum
         self.submitCount = submitCount
         
-    def UpdateResutl(self, messageParaList, db_session):
+    def UpdateResutl(self, messageParaList, db_session, text):
+        compileError = None
+        testCase = None
+        
         try:
             if len(messageParaList) != 4:
                 return False
@@ -22,6 +25,7 @@ class DBUpdate(object):
                 usingMem = messageParaList[3]
             
                 if result == ENUMResources.const.WRONG_ANSWER:
+                    testCase = text
                     self.UpdateTable_SubmittedRecordsOfProblems_WrongAnswer(db_session)
                 
                 elif result == ENUMResources.const.TIME_OVER:
@@ -34,12 +38,14 @@ class DBUpdate(object):
                     self.UpdateTable_SubmittedRecordsOfProblems_RunTimeError(db_session)
                     
                 elif result == ENUMResources.const.COMPILE_ERROR:
+                    compileError = text
                     self.UpdateTable_SubmittedRecordsOfProblems_CompileError(db_session)
                     
                 else:
                     return False
                 
-                self.UpdateTableSubmissions(result, score, runTime, usingMem, db_session)
+                self.UpdateTableSubmissions(result, score, runTime, usingMem,
+                                             db_session, compileError, testCase)
                 
                 db_session.commit()
                 return True
@@ -48,7 +54,7 @@ class DBUpdate(object):
             return False
             
     
-    def UpdateTableSubmissions(self, result, score, runTime, usingMem, db_session):
+    def UpdateTableSubmissions(self, result, score, runTime, usingMem, db_session, compileError, testCase):
         try:
             db_session.query(Submissions).\
                 filter_by(memberId = self.stdNum,
@@ -59,7 +65,9 @@ class DBUpdate(object):
                             score = score,
                             runTime = runTime,
                             usedMemory = usingMem,
-                            solutionCheckCount = Submissions.solutionCheckCount+1))
+                            solutionCheckCount = Submissions.solutionCheckCount+1,
+                            compileErrorMessage = compileError,
+                            wrongTestCaseNumber = int(testCase)))
         except Exception as e:
             raise e
     

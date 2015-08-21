@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from celeryServer import app
 
+import os
 import time
 import DBUpdate
 from DBManager import db_session
@@ -79,7 +80,17 @@ def UpdateResult(messageLine, stdNum, problemNum, courseNum, submitCount):
     dataUpdate = DBUpdate.DBUpdate(stdNum, problemNum, courseNum, submitCount)
     messageParaList = messageLine.split()
     
-    result = dataUpdate.UpdateResutl(messageParaList, db_session)
+    try:
+        if os.path.isfile("message.txt"):
+            fp = open('message.txt', 'r')
+            text = fp.read()
+            fp.close()
+    except Exception:
+        dataUpdate.UpdateServerError(stdNum, problemNum, courseNum,
+                                     submitCount, db_session)
+        return
+        
+    result = dataUpdate.UpdateResutl(messageParaList, db_session, text)
     
     if not result:
         dataUpdate.UpdateServerError(stdNum, problemNum, courseNum,
