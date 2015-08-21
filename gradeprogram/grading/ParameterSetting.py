@@ -28,13 +28,13 @@ class ParameterSetting(object):
         # make execution file name
         self.filePath = "%s%s" % (self.filePath,
                                   FileNameNPathResources.const.FileSeparator)
-        self.runFileName = self.MakeRunFileName()
+        self.runFileName = self.makeRunFileName()
         
         os.chdir(self.saveDirectoryName)
         
         logging.debug(self.saveDirectoryName + ' parameter setting')
         
-    def MakeRunFileName(self):
+    def makeRunFileName(self):
         if self.usingLang == ListResources.const.Lang_C or\
            self.usingLang == ListResources.const.Lang_CPP:
             return FileNameNPathResources.const.DefaultFileName

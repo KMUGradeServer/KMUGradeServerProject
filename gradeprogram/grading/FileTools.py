@@ -7,7 +7,7 @@ from gradingResource.enumResources import ENUMResources
 
 class FileTools(object):
     @staticmethod
-    def ReadFileLines(fileName):
+    def readFileLines(fileName):
         try:
             readFile = open(fileName, 'r')
         except Exception as e:
@@ -23,7 +23,7 @@ class FileTools(object):
         return lines
     
     @staticmethod
-    def ReadFileAll(fileName):
+    def readFileAll(fileName):
         try:
             readFile = open(fileName, 'r') # answer output open
         except Exception as e:
@@ -40,7 +40,7 @@ class FileTools(object):
         return allFile.strip('\r\n ')
     
     @staticmethod
-    def CopyFile(oldName, newName):
+    def copyFile(oldName, newName):
         try:
             if os.path.exists(newName):
                 os.remove(newName)
@@ -54,7 +54,7 @@ class FileTools(object):
             sys.exit()
             
     @staticmethod
-    def CopyAllFile(fileList, path):
+    def copyAllFile(fileList, path):
         try:           
             for name in fileList:
                 copy(name, path)
